@@ -1,4 +1,10 @@
-export type Symbol = '💎' | '7️⃣' | '🔔' | '🍒' | '🍋' | '🍀';
+export type Symbol =
+  | '⛽️'
+  | '��️'
+  | '🔔'
+  | '🪓'
+  | '💣'
+  | '🔥';
 
 export interface SymbolConfig {
   symbol: Symbol;

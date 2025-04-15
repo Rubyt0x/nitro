@@ -1,7 +1,11 @@
 import { ResultMatrix, Symbol, WinResult, LineWin } from '../types/game';
 import { getSymbolConfig } from './symbols';
 
-const WIN_LINES = [
+// Define the type for a coordinate pair
+type Coordinate = [number, number];
+
+// Define WIN_LINES with the specific type
+export const WIN_LINES: Coordinate[][] = [
   // Horizontal lines
   [[0, 0], [0, 1], [0, 2]], // Top row (0)
   [[1, 0], [1, 1], [1, 2]], // Middle row (1)
@@ -15,6 +19,9 @@ const WIN_LINES = [
   [[0, 2], [1, 2], [2, 2]], // Right column (7)
 ];
 
+// Define the maximum credit multiplier required for jackpot eligibility
+const MAX_CREDIT_MULTIPLIER = 10;
+
 export const evaluateWin = (
   matrix: ResultMatrix,
   selectedLines: number[],
@@ -22,6 +29,7 @@ export const evaluateWin = (
 ): WinResult => {
   const winningLines: LineWin[] = [];
   let totalWinnings = 0;
+  const winningSymbols = new Set<Symbol>();
   
   // Check only the selected lines
   for (const lineIndex of selectedLines) {
@@ -39,28 +47,36 @@ export const evaluateWin = (
         
         const lineWin = symbolConfig.multiplier * creditMultiplier;
         totalWinnings += lineWin;
+        winningSymbols.add(symbols[0]);
       }
     }
   }
   
-  // Check for jackpot (all selected lines win with same symbol)
-  if (winningLines.length === selectedLines.length && winningLines.length > 0) {
-    const jackpotSymbol = winningLines[0].symbol;
-    const allSameSymbol = winningLines.every(line => line.symbol === jackpotSymbol);
-    
-    if (allSameSymbol) {
-      const symbolConfig = getSymbolConfig(jackpotSymbol);
-      if (symbolConfig) {
-        const jackpotWin = symbolConfig.jackpotMultiplier * creditMultiplier;
-        
-        return {
-          winnings: jackpotWin,
-          jackpot: true,
-          symbol: jackpotSymbol,
-          lines: winningLines
-        };
-      }
+  // Check for jackpot (requires specific symbol, all selected lines winning, AND max credits)
+  const jackpotSymbolConfig = getSymbolConfig('⛽️');
+  if (jackpotSymbolConfig && creditMultiplier === MAX_CREDIT_MULTIPLIER) {
+    const jackpotLines = winningLines.filter(line => line.symbol === '⛽️');
+    if (jackpotLines.length > 0) { 
+      // Apply jackpot multiplier for each winning '⛽️' line only if max credits were bet
+      const jackpotWin = jackpotLines.length * jackpotSymbolConfig.jackpotMultiplier * creditMultiplier;
+      totalWinnings += jackpotWin; // Add jackpot winnings on top of regular winnings
+
+      // Check if *all* selected lines were jackpot lines for the 'jackpot: true' flag
+      const allLinesAreJackpot = winningLines.length === selectedLines.length && winningLines.every(line => line.symbol === '⛽️');
+
+      return {
+        winnings: totalWinnings,
+        jackpot: allLinesAreJackpot, // Set true only if all selected lines hit the jackpot symbol
+        symbol: '⛽️',
+        lines: winningLines
+      };
     }
+  }
+  
+  // Check for bonus multiplier for multiple winning lines
+  if (winningLines.length > 1) {
+    const bonusMultiplier = 1 + (winningLines.length * 0.1);
+    totalWinnings = Math.floor(totalWinnings * bonusMultiplier);
   }
   
   return {

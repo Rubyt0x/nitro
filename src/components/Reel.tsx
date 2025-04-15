@@ -9,9 +9,10 @@ interface ReelProps {
   spinning: boolean;
   delay: number;
   onStop?: () => void;
+  winningPositions?: number[];
 }
 
-export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
+export const Reel = ({ finalSymbols, spinning, delay, onStop, winningPositions = [] }: ReelProps) => {
   const controls = useAnimation();
   const [symbols, setSymbols] = useState<SymbolType[]>(finalSymbols);
   const currentOffsetRef = useRef(0);
@@ -65,12 +66,16 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
         initial={{ y: 0 }}
         className="absolute top-0 left-0 w-full"
       >
-        {symbols.map((symbol, index) => (
-          <Symbol 
-            key={`${symbol}-${index}-${spinning}`}
-            symbol={symbol}
-          />
-        ))}
+        {symbols.map((symbol, index) => {
+          const isWinning = !spinning && winningPositions.includes(index);
+          return (
+            <Symbol 
+              key={`${symbol}-${index}`}
+              symbol={symbol}
+              isWinning={isWinning}
+            />
+          );
+        })}
       </motion.div>
       
       <div className="absolute inset-0 bg-[url('/textures/glass.png')] bg-cover opacity-5 pointer-events-none" />

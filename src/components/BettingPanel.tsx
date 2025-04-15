@@ -13,7 +13,7 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
   const [selectedLines, setSelectedLines] = useState<LineSelection>(LINE_SELECTIONS[0]);
   const [selectedMultiplier, setSelectedMultiplier] = useState<CreditMultiplier>(CREDIT_MULTIPLIERS[0]);
   const [totalBet, setTotalBet] = useState(0);
-  const [estimatedBets, setEstimatedBets] = useState(0);
+  const [estimatedBets, setEstimatedBets] = useState<number | typeof Infinity>(0);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000000) {
@@ -30,31 +30,47 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
   useEffect(() => {
     const newTotalBet = selectedLines.lines.length * selectedMultiplier.value;
     setTotalBet(newTotalBet);
-    setEstimatedBets(Math.floor(balance / newTotalBet));
+    setEstimatedBets(newTotalBet === 0 ? Infinity : Math.floor(balance / newTotalBet));
     onBetChange(newTotalBet, selectedLines.lines);
-  }, [selectedLines, selectedMultiplier, balance]);
+  }, [selectedLines, selectedMultiplier, balance, onBetChange]);
 
-  const handleMaxRisk = () => {
-    setSelectedLines(LINE_SELECTIONS[3]); // 8 lines
-    setSelectedMultiplier(CREDIT_MULTIPLIERS[3]); // 10x
-  };
+  const showSpinZeroTooltip = estimatedBets === 0 && totalBet > 0;
 
   return (
     <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
       {/* Balance, Total Bet, and Bet Estimate */}
       <div className="grid grid-cols-3 gap-2 w-full">
         <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
-          <div className="text-slate-400 text-xs font-press-start">Balance</div>
-          <div className="text-white font-semibold font-press-start">{formatNumber(balance)}</div>
+          <div className="text-slate-400 text-[10px] sm:text-xs font-press-start">Balance</div>
+          <div className="text-white text-sm sm:text-base font-semibold font-press-start">{formatNumber(balance)}</div>
         </div>
         <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
-          <div className="text-slate-400 text-xs font-press-start">Total Bet</div>
-          <div className="text-white font-semibold font-press-start">{formatNumber(totalBet)}</div>
+          <div className="text-slate-400 text-[10px] sm:text-xs font-press-start">Total Bet</div>
+          <div className="text-white text-sm sm:text-base font-semibold font-press-start">{formatNumber(totalBet)}</div>
         </div>
-        <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
-          <div className="text-slate-400 text-xs font-press-start">Spins Left</div>
-          <div className="text-white font-semibold font-press-start">{estimatedBets}</div>
-        </div>
+        <Tooltip.Provider>
+          <Tooltip.Root delayDuration={100}>
+            <Tooltip.Trigger asChild>
+              <div className={`bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30 ${showSpinZeroTooltip ? 'cursor-help' : ''}`}>
+                <div className="text-slate-400 text-[10px] sm:text-xs font-press-start">Spins Left</div>
+                <div className={`text-white text-sm sm:text-base font-semibold font-press-start ${showSpinZeroTooltip ? 'text-red-400/70' : ''}`}>
+                  { estimatedBets === Infinity ? '∞' : estimatedBets }
+                </div>
+              </div>
+            </Tooltip.Trigger>
+            {showSpinZeroTooltip && (
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-none text-xs sm:text-sm border-2 border-red-500/50 shadow-lg"
+                  sideOffset={5}
+                >
+                  Adjust bet or top up
+                  <Tooltip.Arrow className="fill-black" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            )}
+          </Tooltip.Root>
+        </Tooltip.Provider>
       </div>
 
       {/* Betting Controls */}
@@ -117,19 +133,6 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
           </div>
         </div>
       </div>
-
-      {/* Max Risk Button */}
-      <button
-        onClick={handleMaxRisk}
-        disabled={disabled}
-        className={`w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-none text-xs sm:text-sm font-medium transition-all
-          ${disabled 
-            ? 'opacity-50 cursor-not-allowed bg-black/90 text-red-400/50 border-2 border-red-500/20'
-            : 'bg-black/90 text-red-400 hover:bg-black/80 border-2 border-red-500/30'
-          }`}
-      >
-        Max Risk (8 Lines × 10x)
-      </button>
     </div>
   );
 }; 

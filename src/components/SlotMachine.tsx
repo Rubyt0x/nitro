@@ -1,26 +1,32 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Reel } from './Reel';
 import { BettingPanel } from '@/components/BettingPanel';
-import { ResultMatrix, Symbol } from '@/types/game';
+import { ResultMatrix, Symbol as SymbolType, LineWin } from '@/types/game';
 import { generateResultMatrix } from '@/utils/symbols';
-import { evaluateWin } from '@/utils/winEvaluator';
+import { evaluateWin, WIN_LINES } from '@/utils/winEvaluator';
 import * as Toast from '@radix-ui/react-toast';
 import * as Dialog from '@radix-ui/react-dialog';
+import { WinningBook } from './WinningBook';
+import { BookOpen } from 'lucide-react';
 
 export const SlotMachine = () => {
   const [balance, setBalance] = useState(100);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<ResultMatrix>([
-    ['🍀', '🍋', '🍒'],
-    ['🍋', '🔔', '🍀'],
-    ['🍒', '🍀', '🍋']
+    ['🔥', '💣', '🪓'],
+    ['💣', '🔔', '🔥'],
+    ['🪓', '🔥', '💣']
   ]);
   const [lastWin, setLastWin] = useState(0);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showWinningBook, setShowWinningBook] = useState(false);
   const [totalBet, setTotalBet] = useState(0);
   const [selectedLines, setSelectedLines] = useState<number[]>([]);
   const [jackpotPool, setJackpotPool] = useState(0.00);
   const [isPulsing, setIsPulsing] = useState(false);
+  const [winningSymbols, setWinningSymbols] = useState<{ symbol: SymbolType; lineIndex: number }[]>([]);
+  const [winningLines, setWinningLines] = useState<LineWin[]>([]);
+  const [winningCoordinates, setWinningCoordinates] = useState<[number, number][]>([]);
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -39,6 +45,9 @@ export const SlotMachine = () => {
     if (spinning || balance < totalBet) return;
 
     setSpinning(true);
+    setWinningSymbols([]);
+    setWinningLines([]);
+    setWinningCoordinates([]);
     setBalance(prev => prev - totalBet);
     
     // Add 10% of the bet to the jackpot pool
@@ -53,6 +62,31 @@ export const SlotMachine = () => {
       if (winResult.winnings > 0) {
         setBalance(prev => prev + winResult.winnings);
         setLastWin(winResult.winnings);
+        
+        // Extract winning symbols with line indices for Reel animation state
+        const symbolsForAnim = winResult.lines.map(line => ({
+          symbol: line.symbol,
+          lineIndex: line.lineIndex
+        }));
+        setWinningSymbols(symbolsForAnim);
+
+        // Store the detailed winning line info
+        setWinningLines(winResult.lines);
+
+        // Calculate and store exact winning coordinates
+        const coords: [number, number][] = [];
+        winResult.lines.forEach(line => {
+          // Explicitly type lineCoords as an array of [number, number] tuples
+          const lineCoords: [number, number][] = WIN_LINES[line.lineIndex]; 
+          lineCoords.forEach(([row, col]) => { // Destructuring should now be correctly typed
+            // Ensure coordinate isn't already added from another winning line
+            if (!coords.some(c => c[0] === col && c[1] === row)) {
+              coords.push([col, row]);
+            }
+          });
+        });
+        setWinningCoordinates(coords);
+
       } else {
         setLastWin(0);
       }
@@ -82,23 +116,47 @@ export const SlotMachine = () => {
   return (
     <div className="min-h-screen flex justify-center items-center px-4 sm:px-6 md:px-8 bg-gradient-to-br from-red-900 via-black to-red-950">
       <div className="w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center">
-        {/* Jackpot Pool Display */}
-        <div className={`bg-black/90 backdrop-blur-sm rounded-none p-3 sm:p-4 mb-4 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
-          ${isPulsing ? 'animate-pulse' : ''}`}>
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 animate-shimmer"></div>
-          <div className="relative">
-            <div className="text-center">
-              <div className="text-xs sm:text-sm font-medium text-red-400 mb-1 font-press-start tracking-wider">JACKPOT</div>
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-press-start tracking-wider">
-                💎 {formatNumber(jackpotPool)} <span className="text-red-400 text-sm sm:text-base font-press-start">credits</span>
-              </div>
-              {jackpotPool > 1000 && (
-                <div className="text-xs sm:text-sm text-red-400 mt-2 font-press-start animate-bounce">
-                  🎰 MEGA JACKPOT! 🎰
+        
+        {/* Main Title - Box Layout (Full Width) */}
+        <div className="w-full mb-4 sm:mb-6 border-2 border-red-500/50 bg-black/80 shadow-[0_0_10px_rgba(255,0,0,0.3)] flex items-center">
+          <div className="p-2 sm:p-3 border-r-2 border-red-500/50">
+            <span role="img" aria-label="Slot Machine" className="text-xl sm:text-2xl md:text-3xl">🎰</span>
+          </div>
+          <h1 className="flex-1 px-3 sm:px-4 py-2 text-base sm:text-lg md:text-xl font-press-start text-white text-center shadow-text-glow uppercase whitespace-nowrap">
+            FUEL NITRO SLOT
+          </h1>
+          <div className="p-2 sm:p-3 border-l-2 border-red-500/50">
+            <span role="img" aria-label="Slot Machine" className="text-xl sm:text-2xl md:text-3xl">🎰</span>
+          </div>
+        </div>
+
+        {/* Jackpot Pool Display (with Paytable Icon Button) */}
+        <div className="relative w-full mb-4">
+          <div className={`bg-black/90 backdrop-blur-sm rounded-none p-3 sm:p-4 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
+            ${isPulsing ? 'animate-pulse' : ''}`}>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 animate-shimmer"></div>
+            <div className="relative">
+              <div className="text-center">
+                <div className="text-xs sm:text-sm font-medium text-red-400 mb-1 font-press-start tracking-wider">JACKPOT</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-press-start tracking-wider">
+                  ⛽️ {formatNumber(jackpotPool)} <span className="text-red-400 text-sm sm:text-base font-press-start">credits</span>
                 </div>
-              )}
+                {jackpotPool > 1000 && (
+                  <div className="text-xs sm:text-sm text-red-400 mt-2 font-press-start animate-bounce">
+                    🎰 MEGA JACKPOT! 🎰
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+          {/* Paytable Icon Button (Top Right Corner) */}
+          <button
+            onClick={() => setShowWinningBook(true)}
+            className="absolute top-2 right-2 p-1.5 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
+            aria-label="View Paytable"
+          >
+            <BookOpen size={16} />
+          </button>
         </div>
 
         <div className="bg-black/80 backdrop-blur-sm rounded-none p-4 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
@@ -112,15 +170,24 @@ export const SlotMachine = () => {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent" />
               {/* Outer glow */}
               <div className="absolute -inset-1 bg-red-500/10 blur-sm" />
-              {[0, 1, 2].map(i => (
-                <div key={i} className="w-[72px] h-[216px] overflow-hidden flex flex-col">
-                  <Reel
-                    finalSymbols={result[i]}
-                    spinning={spinning}
-                    delay={i * 0.2}
-                  />
-                </div>
-              ))}
+              {[0, 1, 2].map(colIndex => {
+                // Filter coordinates for the current reel
+                const reelWinningCoords = winningCoordinates
+                  .filter(([col, row]) => col === colIndex)
+                  .map(([col, row]) => row); // Pass only the row index
+
+                return (
+                  <div key={colIndex} className="w-[72px] h-[216px] overflow-hidden flex flex-col">
+                    <Reel
+                      finalSymbols={result[colIndex]}
+                      spinning={spinning}
+                      delay={colIndex * 0.2}
+                      // Pass the winning row indices for this specific reel
+                      winningPositions={reelWinningCoords}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -152,16 +219,29 @@ export const SlotMachine = () => {
           <Toast.Root
             open={lastWin > 0}
             onOpenChange={() => setLastWin(0)}
-            className="bg-black/90 backdrop-blur-sm text-white p-3 sm:p-4 rounded-none shadow-[0_0_10px_rgba(255,0,0,0.3)] border-2 border-red-500/50 flex items-center gap-2 text-sm sm:text-base font-press-start"
+            className="bg-black/90 backdrop-blur-sm text-white p-3 sm:p-4 rounded-none shadow-[0_0_10px_rgba(255,0,0,0.3)] border-2 border-red-500/50 flex flex-col gap-2 text-sm sm:text-base font-press-start"
           >
-            <div className="text-lg sm:text-xl md:text-2xl">
-              {lastWin >= 100 ? '🎰' : '🎉'}
+            <div className="flex items-center gap-2">
+              <div className="text-lg sm:text-xl md:text-2xl">
+                {/* Check if any winning line involves the jackpot symbol ⛽️ and meets jackpot conditions */} 
+                {winningLines.some(line => line.symbol === '⛽️') && lastWin >= 100 ? '🎰' : '🎉'} 
+              </div>
+              <Toast.Title className="font-medium">
+                {winningLines.some(line => line.symbol === '⛽️') && lastWin >= 100 
+                  ? `JACKPOT! You won ${lastWin.toLocaleString()} credits!`
+                  : `You won ${lastWin.toLocaleString()} credits!`}
+              </Toast.Title>
             </div>
-            <Toast.Title className="font-medium">
-              {lastWin >= 100 
-                ? `JACKPOT! You won ${lastWin.toLocaleString()} credits!`
-                : `You won ${lastWin.toLocaleString()} credits!`}
-            </Toast.Title>
+            {winningLines.length > 0 && (
+              <div className="text-xs text-red-400/70">
+                {winningLines.length > 1 ? 'Multiple winning lines!' : 'Winning line!'}
+                {winningLines.map((line, index) => (
+                  <div key={index} className="mt-1">
+                    Line #{line.lineIndex + 1}: {line.symbol} x{line.multiplier}
+                  </div>
+                ))}
+              </div>
+            )}
           </Toast.Root>
           <Toast.Viewport className="fixed bottom-4 right-4" />
         </Toast.Provider>
@@ -188,6 +268,12 @@ export const SlotMachine = () => {
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
+
+        {/* Winning Book Dialog */}
+        <WinningBook
+          open={showWinningBook}
+          onOpenChange={setShowWinningBook}
+        />
       </div>
     </div>
   );
