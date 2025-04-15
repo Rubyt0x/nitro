@@ -15,6 +15,18 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
   const [totalBet, setTotalBet] = useState(0);
   const [estimatedBets, setEstimatedBets] = useState(0);
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000000) {
+      return (num / 1000000000).toFixed(2) + 'bn';
+    } else if (num >= 1000000) {
+      return (num / 1000000).toFixed(2) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(2) + 'K';
+    } else {
+      return num.toFixed(2);
+    }
+  };
+
   useEffect(() => {
     const newTotalBet = selectedLines.lines.length * selectedMultiplier.value;
     setTotalBet(newTotalBet);
@@ -29,33 +41,20 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
 
   return (
     <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
-      {/* Balance and Total Bet */}
-      <div className="grid grid-cols-2 gap-4 sm:gap-8 w-full">
-        <div className="flex flex-col items-center space-y-1 bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none border-2 border-red-500/30">
-          <div className="text-xs sm:text-sm font-medium text-red-400 font-press-start">Balance</div>
-          <div className="text-xl sm:text-2xl font-bold text-white font-press-start">
-            {balance} <span className="text-red-400/70 text-xs sm:text-sm font-press-start">credits</span>
-          </div>
+      {/* Balance, Total Bet, and Bet Estimate */}
+      <div className="grid grid-cols-3 gap-2 w-full">
+        <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
+          <div className="text-slate-400 text-xs font-press-start">Balance</div>
+          <div className="text-white font-semibold font-press-start">{formatNumber(balance)}</div>
         </div>
-        <div className="flex flex-col items-center space-y-1 bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none border-2 border-red-500/30">
-          <div className="text-xs sm:text-sm font-medium text-red-400 font-press-start">Total Bet</div>
-          <div className="text-xl sm:text-2xl font-bold text-white font-press-start">
-            {totalBet} <span className="text-red-400/70 text-xs sm:text-sm font-press-start">credits</span>
-          </div>
+        <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
+          <div className="text-slate-400 text-xs font-press-start">Total Bet</div>
+          <div className="text-white font-semibold font-press-start">{formatNumber(totalBet)}</div>
         </div>
-      </div>
-
-      {/* Bet Estimate */}
-      <div className="bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none w-full text-center border-2 border-red-500/30">
-        <div className="text-xs sm:text-sm text-red-400 mb-1 font-press-start">Bet Estimate</div>
-        <div className="text-base sm:text-lg font-medium text-white font-press-start">
-          You can make <span className="font-bold text-red-500 font-press-start">{estimatedBets}</span> bet{estimatedBets !== 1 ? 's' : ''} with current settings
+        <div className="bg-black/50 backdrop-blur-sm rounded-none p-2 border border-red-500/30">
+          <div className="text-slate-400 text-xs font-press-start">Spins Left</div>
+          <div className="text-white font-semibold font-press-start">{estimatedBets}</div>
         </div>
-        {estimatedBets === 0 && (
-          <div className="text-xs sm:text-sm text-red-500 mt-1">
-            Not enough credits for this bet
-          </div>
-        )}
       </div>
 
       {/* Betting Controls */}

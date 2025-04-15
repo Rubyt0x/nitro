@@ -19,7 +19,7 @@ export const SlotMachine = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [totalBet, setTotalBet] = useState(0);
   const [selectedLines, setSelectedLines] = useState<number[]>([]);
-  const [jackpotPool, setJackpotPool] = useState(0);
+  const [jackpotPool, setJackpotPool] = useState(0.00);
   const [isPulsing, setIsPulsing] = useState(false);
 
   useEffect(() => {
@@ -42,8 +42,8 @@ export const SlotMachine = () => {
     setBalance(prev => prev - totalBet);
     
     // Add 10% of the bet to the jackpot pool
-    const jackpotContribution = Math.floor(totalBet * 0.1);
-    setJackpotPool(prev => prev + jackpotContribution);
+    const jackpotContribution = Number((totalBet * 0.1).toFixed(2));
+    setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
     
     const newResult = generateResultMatrix();
     setResult(newResult);
@@ -72,6 +72,13 @@ export const SlotMachine = () => {
     setJackpotPool(0);
   };
 
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  };
+
   return (
     <div className="min-h-screen flex justify-center items-center px-4 sm:px-6 md:px-8 bg-gradient-to-br from-red-900 via-black to-red-950">
       <div className="w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center">
@@ -81,9 +88,9 @@ export const SlotMachine = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 animate-shimmer"></div>
           <div className="relative">
             <div className="text-center">
-              <div className="text-xs sm:text-sm font-medium text-red-400 mb-1 font-press-start tracking-wider">JACKPOT POOL</div>
+              <div className="text-xs sm:text-sm font-medium text-red-400 mb-1 font-press-start tracking-wider">JACKPOT</div>
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-press-start tracking-wider">
-                {jackpotPool.toLocaleString()} <span className="text-red-400 text-sm sm:text-base font-press-start">credits</span>
+                💎 {formatNumber(jackpotPool)} <span className="text-red-400 text-sm sm:text-base font-press-start">credits</span>
               </div>
               {jackpotPool > 1000 && (
                 <div className="text-xs sm:text-sm text-red-400 mt-2 font-press-start animate-bounce">
@@ -96,11 +103,11 @@ export const SlotMachine = () => {
 
         <div className="bg-black/80 backdrop-blur-sm rounded-none p-4 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
           {/* Reels Container */}
-          <div className={`flex justify-center items-center gap-2 sm:gap-3 bg-black/90 backdrop-blur-sm p-3 sm:p-4 md:p-6 rounded-none border-2 border-red-500/30 shadow-[0_0_10px_rgba(255,0,0,0.2)] transition-all duration-300 ${
+          <div className={`flex justify-center items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-black/40 rounded-xl shadow-inner transition-all duration-300 ${
             spinning ? 'shadow-[0_0_20px_rgba(255,0,0,0.5)]' : ''
           }`}>
             {[0, 1, 2].map(i => (
-              <div key={i} className="flex-1 basis-1/3 max-w-[80px] sm:max-w-[100px] md:max-w-[120px] flex justify-center">
+              <div key={i} className="flex-1 basis-1/3 max-w-[100px] sm:max-w-[120px] md:max-w-[140px] flex justify-center">
                 <Reel
                   finalSymbols={result[i]}
                   spinning={spinning}
@@ -111,7 +118,7 @@ export const SlotMachine = () => {
           </div>
 
           {/* Betting Panel */}
-          <div className="mt-4 sm:mt-6 md:mt-8">
+          <div className="mt-6 sm:mt-8 md:mt-10">
             <BettingPanel
               balance={balance}
               onBetChange={handleBetChange}
