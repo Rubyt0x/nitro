@@ -303,14 +303,20 @@ export const SlotMachine = () => {
                 Game Over
               </Dialog.Title>
               <Dialog.Description className="text-red-400/70 mb-3 sm:mb-4 md:mb-6 text-sm sm:text-base font-press-start">
-                You've run out of FUEL. Would you like to play again?
+                You've run out of FUEL. Top up your account to play again!
               </Dialog.Description>
-              <div className="flex justify-end gap-2 sm:gap-3 md:gap-4">
+              <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
                 <button
-                  onClick={resetGame}
-                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-none hover:from-red-700 hover:to-red-900 transition-all duration-200 text-sm sm:text-base border-2 border-red-500/50 font-press-start"
+                  onClick={() => window.open('https://app.fuel.network/bridge', '_blank')}
+                  className="w-full px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-none hover:from-red-700 hover:to-red-900 transition-all duration-200 text-sm sm:text-base border-2 border-red-500/50 font-press-start"
                 >
-                  Play Again
+                  Bridge to Fuel
+                </button>
+                <button
+                  onClick={() => window.open('https://app.mira.ly', '_blank')}
+                  className="w-full px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-none hover:from-red-700 hover:to-red-900 transition-all duration-200 text-sm sm:text-base border-2 border-red-500/50 font-press-start"
+                >
+                  Swap to Fuel
                 </button>
               </div>
             </Dialog.Content>

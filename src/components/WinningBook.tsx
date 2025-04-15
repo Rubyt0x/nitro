@@ -123,8 +123,6 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
           <ul className="text-white/90 text-xs sm:text-sm font-press-start space-y-1 sm:space-y-2">
             <li>• Each symbol has weighted probability</li>
             <li>• Total symbol weight: 100</li>
-            <li>• Base game RTP: ~95-96%</li>
-            <li>• Jackpot contribution increases potential RTP</li>
             <li>• Game resets at 0 balance</li>
           </ul>
         </div>
