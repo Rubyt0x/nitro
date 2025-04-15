@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build" # Command to build your Vite project
+  publish = "dist"          # Directory containing the build output
+
+[dev] 
+  command = "npm run dev" # Command to run the dev server
+  targetPort = 5173       # Default Vite port
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 
