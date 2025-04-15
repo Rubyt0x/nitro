@@ -52,12 +52,12 @@ export const evaluateWin = (
     }
   }
   
-  // Check for jackpot (requires specific symbol, all selected lines winning, AND max credits)
+  // Check for jackpot (requires specific symbol, all selected lines winning, AND max FUEL)
   const jackpotSymbolConfig = getSymbolConfig('⛽️');
   if (jackpotSymbolConfig && creditMultiplier === MAX_CREDIT_MULTIPLIER) {
     const jackpotLines = winningLines.filter(line => line.symbol === '⛽️');
     if (jackpotLines.length > 0) { 
-      // Apply jackpot multiplier for each winning '⛽️' line only if max credits were bet
+      // Apply jackpot multiplier for each winning '⛽️' line only if max FUEL were bet
       const jackpotWin = jackpotLines.length * jackpotSymbolConfig.jackpotMultiplier * creditMultiplier;
       totalWinnings += jackpotWin; // Add jackpot winnings on top of regular winnings
 

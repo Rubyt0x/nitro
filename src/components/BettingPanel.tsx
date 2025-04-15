@@ -113,7 +113,10 @@ export const BettingPanel = ({ balance, onBetChange, disabled }: BettingPanelPro
 
         {/* Credit Multiplier */}
         <div className="flex flex-col items-center space-y-2">
-          <div className="text-xs sm:text-sm font-medium text-red-400 font-press-start">Credits per Line</div>
+          <div className="text-xs sm:text-sm font-medium text-red-400 font-press-start">
+            <span className="sm:hidden">FUEL / Line</span>
+            <span className="hidden sm:inline">FUEL Per Line</span>
+          </div>
           <div className="grid grid-cols-2 gap-2 w-full">
             {CREDIT_MULTIPLIERS.map((multiplier) => (
               <button

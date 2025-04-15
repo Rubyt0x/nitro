@@ -7,11 +7,11 @@ import { evaluateWin, WIN_LINES } from '@/utils/winEvaluator';
 import * as Toast from '@radix-ui/react-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { WinningBook } from './WinningBook';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Coins } from 'lucide-react';
 
 export const SlotMachine = () => {
   const [balance, setBalance] = useState(100);
-  const [spinning, setSpinning] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<ResultMatrix>([
     ['🔥', '💣', '🪓'],
     ['💣', '🔔', '🔥'],
@@ -19,7 +19,8 @@ export const SlotMachine = () => {
   ]);
   const [lastWin, setLastWin] = useState(0);
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [showWinningBook, setShowWinningBook] = useState(false);
+  const [showWinningCombinations, setShowWinningCombinations] = useState(false);
+  const [showGameRules, setShowGameRules] = useState(false);
   const [totalBet, setTotalBet] = useState(0);
   const [selectedLines, setSelectedLines] = useState<number[]>([]);
   const [jackpotPool, setJackpotPool] = useState(0.00);
@@ -27,6 +28,8 @@ export const SlotMachine = () => {
   const [winningSymbols, setWinningSymbols] = useState<{ symbol: SymbolType; lineIndex: number }[]>([]);
   const [winningLines, setWinningLines] = useState<LineWin[]>([]);
   const [winningCoordinates, setWinningCoordinates] = useState<[number, number][]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -42,9 +45,9 @@ export const SlotMachine = () => {
   };
 
   const handleSpin = useCallback(() => {
-    if (spinning || balance < totalBet) return;
+    if (isSpinning || balance < totalBet) return;
 
-    setSpinning(true);
+    setIsSpinning(true);
     setWinningSymbols([]);
     setWinningLines([]);
     setWinningCoordinates([]);
@@ -90,13 +93,13 @@ export const SlotMachine = () => {
       } else {
         setLastWin(0);
       }
-      setSpinning(false);
+      setIsSpinning(false);
       
       if (balance - totalBet <= 0 && winResult.winnings === 0) {
         setShowResetDialog(true);
       }
     }, 2500);
-  }, [spinning, balance, totalBet, selectedLines]);
+  }, [isSpinning, balance, totalBet, selectedLines]);
 
   const resetGame = () => {
     setBalance(100);
@@ -113,55 +116,100 @@ export const SlotMachine = () => {
     }).format(num);
   };
 
+  const handleConnectWallet = () => {
+    console.log("Connect wallet clicked");
+    setIsConnected(true);
+    setWalletAddress("0x123...abc");
+  };
+
+  const handleDisconnectWallet = () => {
+    console.log("Disconnect wallet clicked");
+    setIsConnected(false);
+    setWalletAddress(null);
+  };
+
   return (
-    <div className="min-h-screen flex justify-center items-center px-4 sm:px-6 md:px-8 bg-gradient-to-br from-red-900 via-black to-red-950">
-      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center">
+    <div className="min-h-screen flex justify-center items-center px-3 sm:px-6 md:px-8 bg-gradient-to-br from-red-900 via-black to-red-950">
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center py-2 sm:py-12 md:py-16">
         
-        {/* Main Title - Box Layout (Full Width) */}
-        <div className="w-full mb-4 sm:mb-6 border-2 border-red-500/50 bg-black/80 shadow-[0_0_10px_rgba(255,0,0,0.3)] flex items-center">
-          <div className="p-2 sm:p-3 border-r-2 border-red-500/50">
-            <span role="img" aria-label="Slot Machine" className="text-xl sm:text-2xl md:text-3xl">🎰</span>
+        {/* Title and Connect Wallet Row */}
+        <div className="w-full flex flex-col sm:flex-row items-center sm:items-center justify-between gap-1.5 sm:gap-4 mb-2 sm:mb-4">
+          {/* Main Title - Box Layout */}
+          <div className="w-full sm:w-auto h-9 sm:h-10 border-2 border-red-500/50 bg-black/80 shadow-[0_0_10px_rgba(255,0,0,0.3)] flex items-center">
+            <div className="h-full p-1.5 sm:p-2 border-r-2 border-red-500/50 flex items-center">
+              <span role="img" aria-label="Slot Machine" className="text-base sm:text-xl">🎰</span>
+            </div>
+            <h1 className="flex-1 px-1.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-base font-press-start text-red-500 text-center shadow-text-glow uppercase whitespace-nowrap">
+              FUEL NITRO RUSH
+            </h1>
+            <div className="h-full p-1.5 sm:p-2 border-l-2 border-red-500/50 flex items-center">
+              <span role="img" aria-label="Slot Machine" className="text-base sm:text-xl">🎰</span>
+            </div>
           </div>
-          <h1 className="flex-1 px-3 sm:px-4 py-2 text-base sm:text-lg md:text-xl font-press-start text-red-500 text-center shadow-text-glow uppercase whitespace-nowrap">
-            FUEL NITRO RUSH
-          </h1>
-          <div className="p-2 sm:p-3 border-l-2 border-red-500/50">
-            <span role="img" aria-label="Slot Machine" className="text-xl sm:text-2xl md:text-3xl">🎰</span>
-          </div>
+
+          {/* Connect Wallet Button */}
+          {isConnected ? (
+            <button 
+              onClick={handleDisconnectWallet}
+              className="w-full sm:w-auto h-9 sm:h-10 px-2 sm:px-3 bg-black/70 text-red-400 border-2 border-red-500/50 rounded-none font-press-start text-xs hover:bg-black/90 hover:border-red-500 transition-colors truncate max-w-[150px] flex items-center justify-center"
+              title={`Connected: ${walletAddress}`}
+            >
+              {walletAddress ? `${walletAddress.substring(0, 5)}...${walletAddress.substring(walletAddress.length - 3)}` : 'Connected'}
+            </button>
+          ) : (
+            <button 
+              onClick={handleConnectWallet}
+              className="w-full sm:w-auto h-9 sm:h-10 px-2 sm:px-3 bg-black/70 text-red-400 border-2 border-red-500/50 rounded-none font-press-start text-xs hover:bg-black/90 hover:border-red-500 transition-colors flex items-center justify-center"
+            >
+              Connect Wallet
+            </button>
+          )}
         </div>
 
-        {/* Jackpot Pool Display (with Paytable Icon Button) */}
-        <div className="relative w-full mb-4">
-          <div className={`bg-black/90 backdrop-blur-sm rounded-none p-3 sm:p-4 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
+        {/* Jackpot Pool Display */}
+        <div className="relative w-full mb-2 sm:mb-4">
+          <div className={`bg-black/90 backdrop-blur-sm rounded-none p-1.5 sm:p-3 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
             ${isPulsing ? 'animate-pulse' : ''}`}>
             <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 animate-shimmer"></div>
-            <div className="relative">
-              <div className="text-center">
-                <div className="text-xs sm:text-sm font-medium text-red-400 mb-1 font-press-start tracking-wider">JACKPOT</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-press-start tracking-wider">
-                  ⛽️ {formatNumber(jackpotPool)} <span className="text-red-400 text-sm sm:text-base font-press-start">credits</span>
+            <div className="relative flex items-center">
+              <div className="p-1.5 sm:p-3 border-r-2 border-red-500/50 flex items-center justify-center">
+                <span className="text-xl sm:text-3xl md:text-4xl">⛽️</span>
+              </div>
+              <div className="flex-1 px-1.5 sm:px-3 py-1 sm:py-2">
+                <div className="text-[10px] sm:text-sm font-medium text-red-400 mb-0.5 sm:mb-1 font-press-start tracking-wider">JACKPOT</div>
+                <div className="text-base sm:text-2xl md:text-3xl font-bold text-white font-press-start tracking-wider">
+                  {formatNumber(jackpotPool)} <span className="text-red-400 text-[10px] sm:text-sm font-press-start">FUEL</span>
                 </div>
                 {jackpotPool > 1000 && (
-                  <div className="text-xs sm:text-sm text-red-400 mt-2 font-press-start animate-bounce">
+                  <div className="text-[10px] sm:text-sm text-red-400 mt-0.5 sm:mt-1.5 font-press-start animate-bounce">
                     🎰 MEGA JACKPOT! 🎰
                   </div>
                 )}
               </div>
             </div>
           </div>
-          {/* Paytable Icon Button (Top Right Corner) */}
-          <button
-            onClick={() => setShowWinningBook(true)}
-            className="absolute top-2 right-2 p-1.5 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
-            aria-label="View Paytable"
-          >
-            <BookOpen size={16} />
-          </button>
+          {/* Paytable Icon Button */}
+          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1">
+            <button
+              onClick={() => setShowWinningCombinations(true)}
+              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
+              title="Winning Combinations"
+            >
+              <Coins size={12} className="sm:w-4 sm:h-4" />
+            </button>
+            <button
+              onClick={() => setShowGameRules(true)}
+              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
+              title="Game Rules"
+            >
+              <BookOpen size={12} className="sm:w-4 sm:h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="bg-black/80 backdrop-blur-sm rounded-none p-4 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
+        <div className="bg-black/80 backdrop-blur-sm rounded-none p-3 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
           {/* Reels Container */}
-          <div className="relative flex justify-center py-2">
+          <div className="relative flex justify-center py-1 sm:py-2">
             <div className="w-fit mx-auto flex gap-[3px] p-[4px] border border-red-500 bg-black/30 shadow-[inset_0_0_10px_#991b1b] relative">
               {/* Subtle stroke effect */}
               <div className="absolute inset-0 border border-red-500/20" />
@@ -180,7 +228,7 @@ export const SlotMachine = () => {
                   <div key={colIndex} className="w-[72px] h-[216px] overflow-hidden flex flex-col">
                     <Reel
                       finalSymbols={result[colIndex]}
-                      spinning={spinning}
+                      spinning={isSpinning}
                       delay={colIndex * 0.2}
                       // Pass the winning row indices for this specific reel
                       winningPositions={reelWinningCoords}
@@ -192,20 +240,20 @@ export const SlotMachine = () => {
           </div>
 
           {/* Betting Panel */}
-          <div className="mt-6 sm:mt-8 md:mt-10">
+          <div className="mt-2 sm:mt-8 md:mt-10">
             <BettingPanel
               balance={balance}
               onBetChange={handleBetChange}
-              disabled={spinning}
+              disabled={isSpinning}
             />
           </div>
 
           {/* Spin Button */}
           <button
             onClick={handleSpin}
-            disabled={spinning || balance < totalBet}
-            className={`w-full mt-4 sm:mt-6 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 rounded-none font-bold text-sm sm:text-base transition-all duration-200 font-press-start
-              ${spinning || balance < totalBet
+            disabled={isSpinning || balance < totalBet}
+            className={`w-full mt-2 sm:mt-6 px-3 sm:px-6 md:px-8 py-1.5 sm:py-3 md:py-4 rounded-none font-bold text-xs sm:text-base transition-all duration-200 font-press-start
+              ${isSpinning || balance < totalBet
                 ? 'bg-red-900/30 text-white/50 cursor-not-allowed border-2 border-red-500/20 backdrop-blur-sm'
                 : 'bg-red-600 text-white hover:bg-red-700 active:scale-95 shadow-[0_0_10px_rgba(255,0,0,0.3)] border-2 border-red-500/50 backdrop-blur-sm hover:shadow-[0_0_15px_rgba(255,0,0,0.4)]'
               }`}
@@ -228,8 +276,8 @@ export const SlotMachine = () => {
               </div>
               <Toast.Title className="font-medium">
                 {winningLines.some(line => line.symbol === '⛽️') && lastWin >= 100 
-                  ? `JACKPOT! You won ${lastWin.toLocaleString()} credits!`
-                  : `You won ${lastWin.toLocaleString()} credits!`}
+                  ? `JACKPOT! You won ${lastWin.toLocaleString()} FUEL!`
+                  : `You won ${lastWin.toLocaleString()} FUEL!`}
               </Toast.Title>
             </div>
             {winningLines.length > 0 && (
@@ -255,7 +303,7 @@ export const SlotMachine = () => {
                 Game Over
               </Dialog.Title>
               <Dialog.Description className="text-red-400/70 mb-3 sm:mb-4 md:mb-6 text-sm sm:text-base font-press-start">
-                You've run out of credits. Would you like to play again?
+                You've run out of FUEL. Would you like to play again?
               </Dialog.Description>
               <div className="flex justify-end gap-2 sm:gap-3 md:gap-4">
                 <button
@@ -269,10 +317,18 @@ export const SlotMachine = () => {
           </Dialog.Portal>
         </Dialog.Root>
 
-        {/* Winning Book Dialog */}
+        {/* Winning Combinations Dialog */}
         <WinningBook
-          open={showWinningBook}
-          onOpenChange={setShowWinningBook}
+          open={showWinningCombinations}
+          onOpenChange={setShowWinningCombinations}
+          type="combinations"
+        />
+
+        {/* Game Rules Dialog */}
+        <WinningBook
+          open={showGameRules}
+          onOpenChange={setShowGameRules}
+          type="rules"
         />
       </div>
     </div>
