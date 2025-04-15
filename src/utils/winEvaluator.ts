@@ -1,4 +1,4 @@
-import { ResultMatrix, Symbol, WinResult, LineWin, BetMode } from '../types/game';
+import { ResultMatrix, Symbol, WinResult, LineWin } from '../types/game';
 import { getSymbolConfig } from './symbols';
 
 const WIN_LINES = [
@@ -15,12 +15,16 @@ const WIN_LINES = [
   [[0, 2], [1, 2], [2, 2]], // Right column (7)
 ];
 
-export const evaluateWin = (matrix: ResultMatrix, betMode: BetMode): WinResult => {
+export const evaluateWin = (
+  matrix: ResultMatrix,
+  selectedLines: number[],
+  creditMultiplier: number
+): WinResult => {
   const winningLines: LineWin[] = [];
   let totalWinnings = 0;
   
-  // Check only the lines specified by the bet mode
-  for (const lineIndex of betMode.linesToCheck) {
+  // Check only the selected lines
+  for (const lineIndex of selectedLines) {
     const line = WIN_LINES[lineIndex];
     const symbols = line.map(([row, col]) => matrix[col][row]);
     
@@ -33,27 +37,21 @@ export const evaluateWin = (matrix: ResultMatrix, betMode: BetMode): WinResult =
           multiplier: symbolConfig.multiplier
         });
         
-        let lineWin = symbolConfig.multiplier * betMode.betAmount;
-        if (betMode.bonusMultiplier) {
-          lineWin *= betMode.bonusMultiplier;
-        }
+        const lineWin = symbolConfig.multiplier * creditMultiplier;
         totalWinnings += lineWin;
       }
     }
   }
   
-  // Check for jackpot (all checked lines win with same symbol)
-  if (winningLines.length === betMode.linesToCheck.length && winningLines.length > 0) {
+  // Check for jackpot (all selected lines win with same symbol)
+  if (winningLines.length === selectedLines.length && winningLines.length > 0) {
     const jackpotSymbol = winningLines[0].symbol;
     const allSameSymbol = winningLines.every(line => line.symbol === jackpotSymbol);
     
     if (allSameSymbol) {
       const symbolConfig = getSymbolConfig(jackpotSymbol);
       if (symbolConfig) {
-        let jackpotWin = symbolConfig.jackpotMultiplier * betMode.betAmount;
-        if (betMode.bonusMultiplier) {
-          jackpotWin *= betMode.bonusMultiplier;
-        }
+        const jackpotWin = symbolConfig.jackpotMultiplier * creditMultiplier;
         
         return {
           winnings: jackpotWin,

@@ -58,7 +58,7 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
 
   return (
     <div 
-      className="w-16 h-48 overflow-hidden bg-white rounded-lg relative border border-slate-200"
+      className="w-16 h-48 overflow-hidden bg-black/90 backdrop-blur-sm rounded-none relative border-2 border-red-500/30 shadow-[0_0_10px_rgba(255,0,0,0.2)]"
     >
       <motion.div
         animate={controls}
@@ -73,7 +73,7 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
         ))}
       </motion.div>
       
-      <div className="absolute inset-0 pointer-events-none border-y border-slate-100" />
+      <div className="absolute inset-0 pointer-events-none border-y border-red-500/20" />
     </div>
   );
 };

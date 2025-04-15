@@ -7,11 +7,15 @@ export interface SymbolConfig {
   jackpotMultiplier: number;
 }
 
-export interface BetMode {
-  name: string;
-  betAmount: number;
-  linesToCheck: number[];
-  bonusMultiplier?: number;
+export interface LineSelection {
+  label: string;
+  lines: number[];
+  description: string;
+}
+
+export interface CreditMultiplier {
+  value: number;
+  label: string;
 }
 
 export type ResultMatrix = Symbol[][];
