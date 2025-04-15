@@ -103,18 +103,25 @@ export const SlotMachine = () => {
 
         <div className="bg-black/80 backdrop-blur-sm rounded-none p-4 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
           {/* Reels Container */}
-          <div className={`flex justify-center items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-black/40 rounded-xl shadow-inner transition-all duration-300 ${
-            spinning ? 'shadow-[0_0_20px_rgba(255,0,0,0.5)]' : ''
-          }`}>
-            {[0, 1, 2].map(i => (
-              <div key={i} className="flex-1 basis-1/3 max-w-[100px] sm:max-w-[120px] md:max-w-[140px] flex justify-center">
-                <Reel
-                  finalSymbols={result[i]}
-                  spinning={spinning}
-                  delay={i * 0.2}
-                />
-              </div>
-            ))}
+          <div className="relative flex justify-center py-2">
+            <div className="w-fit mx-auto flex gap-[3px] p-[4px] border border-red-500 bg-black/30 shadow-[inset_0_0_10px_#991b1b] relative">
+              {/* Subtle stroke effect */}
+              <div className="absolute inset-0 border border-red-500/20" />
+              {/* Depth layers */}
+              <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 via-transparent to-red-500/5" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent" />
+              {/* Outer glow */}
+              <div className="absolute -inset-1 bg-red-500/10 blur-sm" />
+              {[0, 1, 2].map(i => (
+                <div key={i} className="w-[72px] h-[216px] overflow-hidden flex flex-col">
+                  <Reel
+                    finalSymbols={result[i]}
+                    spinning={spinning}
+                    delay={i * 0.2}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Betting Panel */}

@@ -17,7 +17,7 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
   const currentOffsetRef = useRef(0);
   const symbolsRef = useRef<SymbolType[]>(finalSymbols);
   
-  const SYMBOL_HEIGHT = 64;
+  const SYMBOL_HEIGHT = 72;
   const BUFFER_SYMBOLS = 15;
   
   useEffect(() => {
@@ -58,7 +58,7 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
 
   return (
     <div 
-      className="w-16 h-48 overflow-hidden bg-black/90 backdrop-blur-sm rounded-none relative border-2 border-red-500/30 shadow-[0_0_10px_rgba(255,0,0,0.2)]"
+      className="relative flex flex-col justify-center items-center w-[72px] h-[216px] overflow-hidden bg-neutral-900 shadow-inner border-l border-r border-red-800/20 transition-shadow duration-300 hover:shadow-[0_0_20px_#ff1a1a]"
     >
       <motion.div
         animate={controls}
@@ -73,7 +73,9 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop }: ReelProps) => {
         ))}
       </motion.div>
       
-      <div className="absolute inset-0 pointer-events-none border-y border-red-500/20" />
+      <div className="absolute inset-0 bg-[url('/textures/glass.png')] bg-cover opacity-5 pointer-events-none" />
+      <div className="absolute top-0 w-full h-[2px] bg-red-500/20 blur-sm" />
+      <div className="absolute bottom-0 w-full h-[2px] bg-red-500/20 blur-sm" />
     </div>
   );
 };
