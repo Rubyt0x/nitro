@@ -4,7 +4,6 @@ import { BettingPanel } from '@/components/BettingPanel';
 import { ResultMatrix, Symbol as SymbolType, LineWin } from '@/types/game';
 import { generateResultMatrix, getSymbolConfig } from '@/utils/symbols';
 import { evaluateWin, WIN_LINES } from '@/utils/winEvaluator';
-import * as Toast from '@radix-ui/react-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { WinningBook } from './WinningBook';
 import { BookOpen, Coins, Volume2, VolumeX } from 'lucide-react';
@@ -205,31 +204,43 @@ export const SlotMachine = () => {
       {/* Main content */}
       <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center py-2 sm:py-12 md:py-16">
         
-        {/* Title */}
-        <div className="w-full flex flex-col sm:flex-row items-center sm:items-center justify-between gap-1.5 sm:gap-4 mb-2 sm:mb-4">
-          {/* Main Title - Box Layout */}
-          <div className="w-full sm:w-auto h-9 sm:h-10 border-2 border-red-500/50 bg-black/80 shadow-[0_0_10px_rgba(255,0,0,0.3)] flex items-center">
-            <div className="h-full p-1.5 sm:p-2 border-r-2 border-red-500/50 flex items-center">
-              <span role="img" aria-label="Slot Machine" className="text-base sm:text-xl">🎰</span>
-            </div>
-            <h1 className="flex-1 px-1.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-base font-press-start text-red-500 text-center shadow-text-glow uppercase whitespace-nowrap">
-              FUEL NITRO RUSH
-            </h1>
-            <div className="h-full p-1.5 sm:p-2 border-l-2 border-red-500/50 flex items-center">
-              <span role="img" aria-label="Slot Machine" className="text-base sm:text-xl">🎰</span>
-            </div>
+        {/* Top Controls Bar */}
+        <div className="w-full flex items-center justify-between mb-2 sm:mb-4 px-1">
+          {/* Game Controls (Left/Center) */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button
+              onClick={handleMuteToggle}
+              className="p-1.5 sm:p-2 border-2 border-red-500/50 bg-black/80 hover:bg-red-500/20 transition-colors rounded-none"
+              aria-label={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" /> : <Volume2 className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />}
+            </button>
+            <button
+              onClick={() => setShowWinningCombinations(true)}
+              className="p-1.5 sm:p-2 border-2 border-red-500/50 bg-black/80 hover:bg-red-500/20 transition-colors rounded-none"
+              aria-label="Winning Combinations"
+            >
+              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
+            </button>
+            <button
+              onClick={() => setShowGameRules(true)}
+              className="p-1.5 sm:p-2 border-2 border-red-500/50 bg-black/80 hover:bg-red-500/20 transition-colors rounded-none"
+              aria-label="Game Rules"
+            >
+              <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
+            </button>
           </div>
 
-          {/* Connect Wallet Button */}
-          <div className="w-full sm:w-auto mt-2 sm:mt-0">
+          {/* Wallet Connection (Right) */}
+          <div className="ml-2">
             {isConnected ? (
               <div className="relative group">
                 <button
-                  className="px-3 py-1.5 bg-red-600 text-white text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start flex items-center gap-2"
+                  className="px-2 sm:px-3 py-1.5 bg-red-600 text-white text-[10px] sm:text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start flex items-center gap-1 sm:gap-2"
                 >
                   <span>{walletAddress}</span>
                   <svg
-                    className="w-3 h-3"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -245,7 +256,7 @@ export const SlotMachine = () => {
                 <div className="absolute right-0 mt-1 w-full bg-black/90 backdrop-blur-sm border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <button
                     onClick={handleDisconnectWallet}
-                    className="w-full px-3 py-1.5 text-red-400 text-xs hover:bg-red-500/10 transition-colors font-press-start text-left"
+                    className="w-full px-2 sm:px-3 py-1.5 text-red-400 text-[10px] sm:text-xs hover:bg-red-500/10 transition-colors font-press-start text-left"
                   >
                     Disconnect
                   </button>
@@ -254,7 +265,7 @@ export const SlotMachine = () => {
             ) : (
               <button
                 onClick={handleConnectWallet}
-                className="w-full sm:w-auto px-3 py-1.5 bg-red-600 text-white text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start"
+                className="px-2 sm:px-3 py-1.5 bg-red-600 text-white text-[10px] sm:text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start"
               >
                 Connect Wallet
               </button>
@@ -262,8 +273,9 @@ export const SlotMachine = () => {
           </div>
         </div>
 
-        {/* Replace the old jackpot display with the new component */}
+        {/* Jackpot Display with Integrated Title */}
         <JackpotDisplay 
+          title="FUEL NITRO RUSH"
           jackpotPool={jackpotPool} 
           winNotification={winNotification}
         />
@@ -324,38 +336,6 @@ export const SlotMachine = () => {
             {!isConnected ? 'CONNECT WALLET TO PLAY' : 'SPIN'}
           </button>
         </div>
-
-        {/* Toast Notifications */}
-        <Toast.Provider>
-          <Toast.Root
-            open={lastWin > 0}
-            onOpenChange={() => setLastWin(0)}
-            className="bg-black/90 backdrop-blur-sm text-white p-3 sm:p-4 rounded-none shadow-[0_0_10px_rgba(255,0,0,0.3)] border-2 border-red-500/50 flex flex-col gap-2 text-sm sm:text-base font-press-start"
-          >
-            <div className="flex items-center gap-2">
-              <div className="text-lg sm:text-xl md:text-2xl">
-                {/* Check if any winning line involves the jackpot symbol ⛽️ and meets jackpot conditions */} 
-                {winningLines.some(line => line.symbol === '⛽️') && lastWin >= 100 ? '🎰' : '🎉'} 
-              </div>
-              <Toast.Title className="font-medium">
-                {winningLines.some(line => line.symbol === '⛽️') && lastWin >= 100 
-                  ? `JACKPOT! You won ${lastWin.toLocaleString()} FUEL!`
-                  : `You won ${lastWin.toLocaleString()} FUEL!`}
-              </Toast.Title>
-            </div>
-            {winningLines.length > 0 && (
-              <div className="text-xs text-red-400/70">
-                {winningLines.length > 1 ? 'Multiple winning lines!' : 'Winning line!'}
-                {winningLines.map((line, index) => (
-                  <div key={index} className="mt-1">
-                    Line #{line.lineIndex + 1}: {line.symbol} x{line.multiplier}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Toast.Root>
-          <Toast.Viewport className="fixed bottom-4 right-4" />
-        </Toast.Provider>
 
         {/* Game Over Dialog */}
         <Dialog.Root open={showResetDialog} onOpenChange={setShowResetDialog}>
