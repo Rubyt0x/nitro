@@ -10,9 +10,10 @@ import { WinningBook } from './WinningBook';
 import { BookOpen, Coins, Volume2, VolumeX } from 'lucide-react';
 import { initSounds, playSound, stopSound, playWinSound, toggleMute, getMuteState } from '../utils/soundManager';
 import { AnimatedBalance } from './AnimatedBalance';
+import { JackpotDisplay } from './JackpotDisplay';
 
 export const SlotMachine = () => {
-  const [balance, setBalance] = useState(100);
+  const [balance, setBalance] = useState(10000);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<ResultMatrix>([
     ['🔥', '💣', '🪓'],
@@ -35,6 +36,7 @@ export const SlotMachine = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isWinning, setIsWinning] = useState(false);
   const animationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [winNotification, setWinNotification] = useState<{ message: string; amount: number } | undefined>();
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -90,6 +92,15 @@ export const SlotMachine = () => {
           setBalance(prev => prev + winResult.winnings);
           setLastWin(winResult.winnings);
           
+          // Set win notification
+          const winMessage = winResult.jackpot 
+            ? "⛽️ JACKPOT HIT" 
+            : `${winResult.lines[0].symbol} Line ${winResult.lines[0].lineIndex + 1}`;
+          setWinNotification({
+            message: winMessage,
+            amount: winResult.winnings
+          });
+          
           const symbolsForAnim = winResult.lines.map(line => ({
             symbol: line.symbol,
             lineIndex: line.lineIndex
@@ -140,7 +151,7 @@ export const SlotMachine = () => {
   };
 
   const resetGame = () => {
-    setBalance(100);
+    setBalance(10000);
     setLastWin(0);
     setShowResetDialog(false);
     setTotalBet(0);
@@ -158,7 +169,7 @@ export const SlotMachine = () => {
     console.log("Connect wallet clicked");
     setIsConnected(true);
     setWalletAddress("0x123...abc");
-    setBalance(100);
+    setBalance(10000);
   };
 
   const handleDisconnectWallet = () => {
@@ -251,52 +262,11 @@ export const SlotMachine = () => {
           </div>
         </div>
 
-        {/* Jackpot Pool Display */}
-        <div className="relative w-full mb-2 sm:mb-4">
-          <div className={`bg-black/90 backdrop-blur-sm rounded-none p-1.5 sm:p-3 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
-            ${isPulsing ? 'animate-pulse' : ''}`}>
-            <div className="relative flex items-center">
-              <div className="p-1.5 sm:p-3 border-r-2 border-red-500/50 flex items-center justify-center">
-                <span className="text-xl sm:text-3xl md:text-4xl">⛽️</span>
-              </div>
-              <div className="flex-1 px-1.5 sm:px-3 py-1 sm:py-2">
-                <div className="text-[10px] sm:text-sm font-medium text-red-400 mb-0.5 sm:mb-1 font-press-start tracking-wider">JACKPOT</div>
-                <div className="text-base sm:text-2xl md:text-3xl font-bold text-white font-press-start tracking-wider">
-                  {formatNumber(jackpotPool)} <span className="text-red-400 text-[10px] sm:text-sm font-press-start">FUEL</span>
-                </div>
-                {jackpotPool > 1000 && (
-                  <div className="text-[10px] sm:text-sm text-red-400 mt-0.5 sm:mt-1.5 font-press-start animate-bounce">
-                    🎰 MEGA JACKPOT! 🎰
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          {/* Paytable Icon Button */}
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1">
-            <button
-              onClick={handleMuteToggle}
-              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <VolumeX size={12} className="sm:w-4 sm:h-4" /> : <Volume2 size={12} className="sm:w-4 sm:h-4" />}
-            </button>
-            <button
-              onClick={() => setShowWinningCombinations(true)}
-              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
-              title="Winning Combinations"
-            >
-              <Coins size={12} className="sm:w-4 sm:h-4" />
-            </button>
-            <button
-              onClick={() => setShowGameRules(true)}
-              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
-              title="Game Rules"
-            >
-              <BookOpen size={12} className="sm:w-4 sm:h-4" />
-            </button>
-          </div>
-        </div>
+        {/* Replace the old jackpot display with the new component */}
+        <JackpotDisplay 
+          jackpotPool={jackpotPool} 
+          winNotification={winNotification}
+        />
 
         <div className={`bg-black/80 backdrop-blur-sm rounded-none p-3 sm:p-6 md:p-8 border-2 border-red-500/50 w-full relative overflow-hidden
           ${isSpinning ? 'animate-border-glow' : ''}`}>

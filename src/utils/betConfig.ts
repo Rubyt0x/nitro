@@ -24,8 +24,8 @@ export const LINE_SELECTIONS: LineSelection[] = [
 ];
 
 export const CREDIT_MULTIPLIERS: CreditMultiplier[] = [
-  { value: 1, label: "1x" },
-  { value: 2, label: "2x" },
-  { value: 5, label: "5x" },
-  { value: 10, label: "10x" }
+  { value: 100, label: "100x" },
+  { value: 200, label: "200x" },
+  { value: 500, label: "500x" },
+  { value: 1000, label: "1000x" }
 ]; 

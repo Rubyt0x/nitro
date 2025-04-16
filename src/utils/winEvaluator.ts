@@ -20,7 +20,7 @@ export const WIN_LINES: Coordinate[][] = [
 ];
 
 // Define the maximum credit multiplier required for jackpot eligibility
-const MAX_CREDIT_MULTIPLIER = 10;
+const MAX_CREDIT_MULTIPLIER = 1000;
 
 export const evaluateWin = (
   matrix: ResultMatrix,
