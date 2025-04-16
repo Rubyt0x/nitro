@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Reel } from './Reel';
 import { BettingPanel } from '@/components/BettingPanel';
 import { ResultMatrix, Symbol as SymbolType, LineWin } from '@/types/game';
@@ -7,7 +7,8 @@ import { evaluateWin, WIN_LINES } from '@/utils/winEvaluator';
 import * as Toast from '@radix-ui/react-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { WinningBook } from './WinningBook';
-import { BookOpen, Coins } from 'lucide-react';
+import { BookOpen, Coins, Volume2, VolumeX } from 'lucide-react';
+import { initSounds, playSound, stopSound, playWinSound, toggleMute, getMuteState } from '../utils/soundManager';
 
 export const SlotMachine = () => {
   const [balance, setBalance] = useState(100);
@@ -30,6 +31,7 @@ export const SlotMachine = () => {
   const [winningCoordinates, setWinningCoordinates] = useState<[number, number][]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -39,67 +41,92 @@ export const SlotMachine = () => {
     }
   }, [jackpotPool]);
 
+  // Initialize sounds when component mounts
+  useEffect(() => {
+    initSounds();
+    setIsMuted(getMuteState());
+  }, []);
+
+  const handleMuteToggle = () => {
+    const newMuteState = toggleMute();
+    setIsMuted(newMuteState);
+  };
+
   const handleBetChange = (newTotalBet: number, newSelectedLines: number[]) => {
     setTotalBet(newTotalBet);
     setSelectedLines(newSelectedLines);
   };
 
-  const handleSpin = useCallback(() => {
+  const handleSpin = async () => {
     if (isSpinning || balance < totalBet) return;
 
-    setIsSpinning(true);
-    setWinningSymbols([]);
-    setWinningLines([]);
-    setWinningCoordinates([]);
-    setBalance(prev => prev - totalBet);
-    
-    // Add 10% of the bet to the jackpot pool
-    const jackpotContribution = Number((totalBet * 0.1).toFixed(2));
-    setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
-    
-    const newResult = generateResultMatrix();
-    setResult(newResult);
-    
-    setTimeout(() => {
-      const winResult = evaluateWin(newResult, selectedLines, totalBet / selectedLines.length);
-      if (winResult.winnings > 0) {
-        setBalance(prev => prev + winResult.winnings);
-        setLastWin(winResult.winnings);
-        
-        // Extract winning symbols with line indices for Reel animation state
-        const symbolsForAnim = winResult.lines.map(line => ({
-          symbol: line.symbol,
-          lineIndex: line.lineIndex
-        }));
-        setWinningSymbols(symbolsForAnim);
+    try {
+      setIsSpinning(true);
+      playSound('spin');
 
-        // Store the detailed winning line info
-        setWinningLines(winResult.lines);
-
-        // Calculate and store exact winning coordinates
-        const coords: [number, number][] = [];
-        winResult.lines.forEach(line => {
-          // Explicitly type lineCoords as an array of [number, number] tuples
-          const lineCoords: [number, number][] = WIN_LINES[line.lineIndex]; 
-          lineCoords.forEach(([row, col]) => { // Destructuring should now be correctly typed
-            // Ensure coordinate isn't already added from another winning line
-            if (!coords.some(c => c[0] === col && c[1] === row)) {
-              coords.push([col, row]);
-            }
-          });
-        });
-        setWinningCoordinates(coords);
-
-      } else {
-        setLastWin(0);
-      }
-      setIsSpinning(false);
+      setWinningSymbols([]);
+      setWinningLines([]);
+      setWinningCoordinates([]);
+      setBalance(prev => prev - totalBet);
       
-      if (balance - totalBet <= 0 && winResult.winnings === 0) {
-        setShowResetDialog(true);
-      }
-    }, 2500);
-  }, [isSpinning, balance, totalBet, selectedLines]);
+      // Add 10% of the bet to the jackpot pool
+      const jackpotContribution = Number((totalBet * 0.1).toFixed(2));
+      setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
+      
+      const newResult = generateResultMatrix();
+      setResult(newResult);
+      
+      setTimeout(() => {
+        const winResult = evaluateWin(newResult, selectedLines, totalBet / selectedLines.length);
+        stopSound('spin');
+        
+        if (winResult.winnings > 0) {
+          setBalance(prev => prev + winResult.winnings);
+          setLastWin(winResult.winnings);
+          
+          // Extract winning symbols with line indices for Reel animation state
+          const symbolsForAnim = winResult.lines.map(line => ({
+            symbol: line.symbol,
+            lineIndex: line.lineIndex
+          }));
+          setWinningSymbols(symbolsForAnim);
+
+          // Store the detailed winning line info
+          setWinningLines(winResult.lines);
+
+          // Calculate and store exact winning coordinates
+          const coords: [number, number][] = [];
+          winResult.lines.forEach(line => {
+            const lineCoords: [number, number][] = WIN_LINES[line.lineIndex]; 
+            lineCoords.forEach(([row, col]) => {
+              if (!coords.some(c => c[0] === col && c[1] === row)) {
+                coords.push([col, row]);
+              }
+            });
+          });
+          setWinningCoordinates(coords);
+
+          // Play the final win sound
+          const winningCombinations = winResult.lines.map(line => ({
+            symbol: line.symbol,
+            count: 3 // Since we only have winning lines when all 3 symbols match
+          }));
+          playWinSound(winningCombinations);
+        } else {
+          setLastWin(0);
+        }
+        setIsSpinning(false);
+        
+        if (balance - totalBet <= 0 && winResult.winnings === 0) {
+          setShowResetDialog(true);
+        }
+      }, 2500);
+    } catch (error) {
+      console.error('Error during spin:', error);
+      stopSound('spin');
+      playSound('gameOver');
+    }
+  };
 
   const resetGame = () => {
     setBalance(100);
@@ -120,19 +147,43 @@ export const SlotMachine = () => {
     console.log("Connect wallet clicked");
     setIsConnected(true);
     setWalletAddress("0x123...abc");
+    setBalance(100);
   };
 
   const handleDisconnectWallet = () => {
     console.log("Disconnect wallet clicked");
     setIsConnected(false);
     setWalletAddress(null);
+    setBalance(0);
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center px-3 sm:px-6 md:px-8 bg-gradient-to-br from-red-900 via-black to-red-950">
-      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center py-2 sm:py-12 md:py-16">
+    <div className={`min-h-screen flex justify-center items-center px-3 sm:px-6 md:px-8 relative overflow-hidden`}>
+      {/* Base gradient layer */}
+      <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-1500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        isSpinning 
+          ? 'from-black via-black to-black opacity-100' 
+          : 'from-red-900 via-black to-red-950 opacity-100'
+      }`} />
+      
+      {/* Animated overlay layer */}
+      <div className={`absolute inset-0 transition-all duration-1500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        isSpinning 
+          ? 'bg-black/80 backdrop-blur-sm' 
+          : 'bg-transparent'
+      }`} />
+      
+      {/* Pulsing glow effect */}
+      <div className={`absolute inset-0 transition-all duration-1500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        isSpinning 
+          ? 'bg-red-500/5 animate-pulse' 
+          : 'bg-transparent'
+      }`} />
+      
+      {/* Main content */}
+      <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center py-2 sm:py-12 md:py-16">
         
-        {/* Title and Connect Wallet Row */}
+        {/* Title */}
         <div className="w-full flex flex-col sm:flex-row items-center sm:items-center justify-between gap-1.5 sm:gap-4 mb-2 sm:mb-4">
           {/* Main Title - Box Layout */}
           <div className="w-full sm:w-auto h-9 sm:h-10 border-2 border-red-500/50 bg-black/80 shadow-[0_0_10px_rgba(255,0,0,0.3)] flex items-center">
@@ -148,29 +199,51 @@ export const SlotMachine = () => {
           </div>
 
           {/* Connect Wallet Button */}
-          {isConnected ? (
-            <button 
-              onClick={handleDisconnectWallet}
-              className="w-full sm:w-auto h-9 sm:h-10 px-2 sm:px-3 bg-black/70 text-red-400 border-2 border-red-500/50 rounded-none font-press-start text-xs hover:bg-black/90 hover:border-red-500 transition-colors truncate max-w-[150px] flex items-center justify-center"
-              title={`Connected: ${walletAddress}`}
-            >
-              {walletAddress ? `${walletAddress.substring(0, 5)}...${walletAddress.substring(walletAddress.length - 3)}` : 'Connected'}
-            </button>
-          ) : (
-            <button 
-              onClick={handleConnectWallet}
-              className="w-full sm:w-auto h-9 sm:h-10 px-2 sm:px-3 bg-black/70 text-red-400 border-2 border-red-500/50 rounded-none font-press-start text-xs hover:bg-black/90 hover:border-red-500 transition-colors flex items-center justify-center"
-            >
-              Connect Wallet
-            </button>
-          )}
+          <div className="w-full sm:w-auto mt-2 sm:mt-0">
+            {isConnected ? (
+              <div className="relative group">
+                <button
+                  className="px-3 py-1.5 bg-red-600 text-white text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start flex items-center gap-2"
+                >
+                  <span>{walletAddress}</span>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <div className="absolute right-0 mt-1 w-full bg-black/90 backdrop-blur-sm border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <button
+                    onClick={handleDisconnectWallet}
+                    className="w-full px-3 py-1.5 text-red-400 text-xs hover:bg-red-500/10 transition-colors font-press-start text-left"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleConnectWallet}
+                className="w-full sm:w-auto px-3 py-1.5 bg-red-600 text-white text-xs rounded-none hover:bg-red-700 transition-colors border-2 border-red-500/50 font-press-start"
+              >
+                Connect Wallet
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Jackpot Pool Display */}
         <div className="relative w-full mb-2 sm:mb-4">
           <div className={`bg-black/90 backdrop-blur-sm rounded-none p-1.5 sm:p-3 w-full border-2 border-red-500/50 shadow-[0_0_10px_rgba(255,0,0,0.3)] relative overflow-hidden
             ${isPulsing ? 'animate-pulse' : ''}`}>
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 animate-shimmer"></div>
             <div className="relative flex items-center">
               <div className="p-1.5 sm:p-3 border-r-2 border-red-500/50 flex items-center justify-center">
                 <span className="text-xl sm:text-3xl md:text-4xl">⛽️</span>
@@ -191,6 +264,13 @@ export const SlotMachine = () => {
           {/* Paytable Icon Button */}
           <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1">
             <button
+              onClick={handleMuteToggle}
+              className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX size={12} className="sm:w-4 sm:h-4" /> : <Volume2 size={12} className="sm:w-4 sm:h-4" />}
+            </button>
+            <button
               onClick={() => setShowWinningCombinations(true)}
               className="p-0.5 sm:p-1 bg-black/50 text-red-400/70 rounded-sm border border-red-500/20 hover:bg-black/70 hover:text-red-400 transition-colors"
               title="Winning Combinations"
@@ -207,7 +287,8 @@ export const SlotMachine = () => {
           </div>
         </div>
 
-        <div className="bg-black/80 backdrop-blur-sm rounded-none p-3 sm:p-6 md:p-8 shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-full">
+        <div className={`bg-black/80 backdrop-blur-sm rounded-none p-3 sm:p-6 md:p-8 border-2 border-red-500/50 w-full relative overflow-hidden
+          ${isSpinning ? 'animate-border-glow' : ''}`}>
           {/* Reels Container */}
           <div className="relative flex justify-center py-1 sm:py-2">
             <div className="w-fit mx-auto flex gap-[3px] p-[4px] border border-red-500 bg-black/30 shadow-[inset_0_0_10px_#991b1b] relative">
@@ -244,21 +325,21 @@ export const SlotMachine = () => {
             <BettingPanel
               balance={balance}
               onBetChange={handleBetChange}
-              disabled={isSpinning}
+              disabled={isSpinning || !isConnected}
             />
           </div>
 
           {/* Spin Button */}
           <button
             onClick={handleSpin}
-            disabled={isSpinning || balance < totalBet}
+            disabled={isSpinning || balance < totalBet || !isConnected}
             className={`w-full mt-2 sm:mt-6 px-3 sm:px-6 md:px-8 py-1.5 sm:py-3 md:py-4 rounded-none font-bold text-xs sm:text-base transition-all duration-200 font-press-start
-              ${isSpinning || balance < totalBet
+              ${isSpinning || balance < totalBet || !isConnected
                 ? 'bg-red-900/30 text-white/50 cursor-not-allowed border-2 border-red-500/20 backdrop-blur-sm'
                 : 'bg-red-600 text-white hover:bg-red-700 active:scale-95 shadow-[0_0_10px_rgba(255,0,0,0.3)] border-2 border-red-500/50 backdrop-blur-sm hover:shadow-[0_0_15px_rgba(255,0,0,0.4)]'
               }`}
           >
-            SPIN
+            {!isConnected ? 'CONNECT WALLET TO PLAY' : 'SPIN'}
           </button>
         </div>
 

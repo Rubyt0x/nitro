@@ -40,7 +40,7 @@ export const Reel = ({ finalSymbols, spinning, delay, onStop, winningPositions =
         transition: {
           duration: 2,
           delay,
-          ease: [0.25, 0.1, 0.25, 1],
+          ease: [0.2, 0.0, 0.2, 1],
         },
       }).then(() => {
         currentOffsetRef.current = targetOffset;
