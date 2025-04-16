@@ -10,6 +10,42 @@ import { BookOpen, Coins, Volume2, VolumeX } from 'lucide-react';
 import { initSounds, playSound, stopSound, playWinSound, toggleMute, getMuteState } from '../utils/soundManager';
 import { AnimatedBalance } from './AnimatedBalance';
 import { JackpotDisplay } from './JackpotDisplay';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const SymbolConfetti = ({ symbol, index }: { symbol: string; index: number }) => {
+  const randomX = Math.random() * 200 - 100; // Wider spread: -100vw to 100vw
+  const randomDelay = Math.random() * 1.2; // Longer max delay for more natural effect
+  const randomDuration = 1.8 + Math.random() * 1.2; // Duration between 1.8s and 3s
+  const startY = -20 - Math.random() * 80; // Higher starting point
+  const randomScale = 0.6 + Math.random() * 0.8; // Random size between 0.6 and 1.4
+
+  return (
+    <motion.div
+      className="absolute text-2xl sm:text-3xl md:text-4xl pointer-events-none"
+      initial={{ 
+        opacity: 0,
+        scale: 0,
+        x: `${randomX}vw`,
+        y: startY,
+        rotate: Math.random() * 360 - 180 // Random initial rotation
+      }}
+      animate={{ 
+        opacity: [0, 1, 1, 0],
+        scale: [0.2, randomScale, randomScale, 0.6],
+        y: ['0vh', '120vh'],
+        rotate: Math.random() * 720 - 360 // Random rotation amount
+      }}
+      transition={{
+        duration: randomDuration,
+        delay: randomDelay,
+        ease: "easeOut",
+        times: [0, 0.2, 0.8, 1]
+      }}
+    >
+      {symbol}
+    </motion.div>
+  );
+};
 
 export const SlotMachine = () => {
   const [balance, setBalance] = useState(10000);
@@ -36,6 +72,7 @@ export const SlotMachine = () => {
   const [isWinning, setIsWinning] = useState(false);
   const animationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [winNotification, setWinNotification] = useState<{ message: string; amount: number } | undefined>();
+  const [confettiSymbols, setConfettiSymbols] = useState<string[]>([]);
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -67,6 +104,7 @@ export const SlotMachine = () => {
     try {
       setIsSpinning(true);
       setIsWinning(false);
+      setConfettiSymbols([]); // Clear any existing confetti
       playSound('spin');
 
       setWinningSymbols([]);
@@ -99,6 +137,14 @@ export const SlotMachine = () => {
             message: winMessage,
             amount: winResult.winnings
           });
+
+          // Create confetti symbols array
+          const symbols = winResult.lines.reduce((acc: string[], line) => {
+            // Add 15 instances of each winning symbol for confetti (increased from 6)
+            const symbolCount = line.symbol === '⛽️' ? 25 : 15; // Extra confetti for jackpot symbol
+            return [...acc, ...Array(symbolCount).fill(line.symbol)];
+          }, []);
+          setConfettiSymbols(symbols);
           
           const symbolsForAnim = winResult.lines.map(line => ({
             symbol: line.symbol,
@@ -131,6 +177,7 @@ export const SlotMachine = () => {
           // Reset winning state after animation
           setTimeout(() => {
             setIsWinning(false);
+            setConfettiSymbols([]); // Clear confetti
           }, 2000);
         } else {
           setLastWin(0);
@@ -200,6 +247,15 @@ export const SlotMachine = () => {
           ? 'bg-red-500/5 animate-pulse' 
           : 'bg-transparent'
       }`} />
+
+      {/* Confetti Container */}
+      <div className="fixed inset-0 pointer-events-none">
+        <AnimatePresence>
+          {confettiSymbols.map((symbol, index) => (
+            <SymbolConfetti key={`${index}-${symbol}`} symbol={symbol} index={index} />
+          ))}
+        </AnimatePresence>
+      </div>
       
       {/* Main content */}
       <div className="relative w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col items-center py-2 sm:py-12 md:py-16">
