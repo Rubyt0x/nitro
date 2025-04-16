@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Reel } from './Reel';
 import { BettingPanel } from '@/components/BettingPanel';
 import { ResultMatrix, Symbol as SymbolType, LineWin } from '@/types/game';
-import { generateResultMatrix } from '@/utils/symbols';
+import { generateResultMatrix, getSymbolConfig } from '@/utils/symbols';
 import { evaluateWin, WIN_LINES } from '@/utils/winEvaluator';
 import * as Toast from '@radix-ui/react-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { WinningBook } from './WinningBook';
 import { BookOpen, Coins, Volume2, VolumeX } from 'lucide-react';
 import { initSounds, playSound, stopSound, playWinSound, toggleMute, getMuteState } from '../utils/soundManager';
+import { AnimatedBalance } from './AnimatedBalance';
 
 export const SlotMachine = () => {
   const [balance, setBalance] = useState(100);
@@ -32,6 +33,8 @@ export const SlotMachine = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isWinning, setIsWinning] = useState(false);
+  const animationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (jackpotPool > 1000) {
@@ -58,18 +61,20 @@ export const SlotMachine = () => {
   };
 
   const handleSpin = async () => {
-    if (isSpinning || balance < totalBet) return;
+    if (isSpinning || animationIntervalRef.current !== null || balance < totalBet) return;
 
     try {
       setIsSpinning(true);
+      setIsWinning(false);
       playSound('spin');
 
       setWinningSymbols([]);
       setWinningLines([]);
       setWinningCoordinates([]);
-      setBalance(prev => prev - totalBet);
       
-      // Add 10% of the bet to the jackpot pool
+      const newBalanceAfterBet = balance - totalBet;
+      setBalance(newBalanceAfterBet);
+      
       const jackpotContribution = Number((totalBet * 0.1).toFixed(2));
       setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
       
@@ -81,37 +86,42 @@ export const SlotMachine = () => {
         stopSound('spin');
         
         if (winResult.winnings > 0) {
+          setIsWinning(true);
           setBalance(prev => prev + winResult.winnings);
           setLastWin(winResult.winnings);
           
-          // Extract winning symbols with line indices for Reel animation state
           const symbolsForAnim = winResult.lines.map(line => ({
             symbol: line.symbol,
             lineIndex: line.lineIndex
           }));
           setWinningSymbols(symbolsForAnim);
 
-          // Store the detailed winning line info
           setWinningLines(winResult.lines);
 
-          // Calculate and store exact winning coordinates
           const coords: [number, number][] = [];
           winResult.lines.forEach(line => {
             const lineCoords: [number, number][] = WIN_LINES[line.lineIndex]; 
-            lineCoords.forEach(([row, col]) => {
-              if (!coords.some(c => c[0] === col && c[1] === row)) {
-                coords.push([col, row]);
-              }
-            });
+            if (lineCoords) {
+              lineCoords.forEach(([row, col]) => {
+                const gridCoord: [number, number] = [col, row]; 
+                if (!coords.some(c => c[0] === gridCoord[0] && c[1] === gridCoord[1])) {
+                  coords.push(gridCoord);
+                }
+              });
+            }
           });
           setWinningCoordinates(coords);
 
-          // Play the final win sound
           const winningCombinations = winResult.lines.map(line => ({
             symbol: line.symbol,
-            count: 3 // Since we only have winning lines when all 3 symbols match
+            count: 3 
           }));
           playWinSound(winningCombinations);
+
+          // Reset winning state after animation
+          setTimeout(() => {
+            setIsWinning(false);
+          }, 2000);
         } else {
           setLastWin(0);
         }
@@ -125,6 +135,7 @@ export const SlotMachine = () => {
       console.error('Error during spin:', error);
       stopSound('spin');
       playSound('gameOver');
+      setIsSpinning(false);
     }
   };
 
@@ -326,6 +337,7 @@ export const SlotMachine = () => {
               balance={balance}
               onBetChange={handleBetChange}
               disabled={isSpinning || !isConnected}
+              isWinning={isWinning}
             />
           </div>
 
