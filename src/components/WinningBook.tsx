@@ -9,7 +9,7 @@ interface WinningBookProps {
 }
 
 export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
-  const symbols = ['⛽️', '🏎️', '🔔', '🪓', '💣', '🔥'];
+  const symbols = ['⛽️', '🏎️', '🔔', '🪓', '💣', '🔥', '7️⃣'];
   const lines = [
     { name: 'Top Row', index: 0 },
     { name: 'Middle Row', index: 1 },
@@ -38,7 +38,9 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
                 <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
                   <span className="text-xl sm:text-2xl">{symbol}</span>
                   <div className="flex flex-col">
-                    <span className="text-white text-xs sm:text-sm font-press-start">x{config.multiplier}</span>
+                    <span className="text-white text-xs sm:text-sm font-press-start">
+                      3x: x{config.multiplier.three} | 4x: x{config.multiplier.four} | 5x: x{config.multiplier.five}
+                    </span>
                     <small className="text-red-400/80 text-[10px] sm:text-xs font-sans font-normal tracking-wide">
                       {probability}% chance
                     </small>
@@ -123,6 +125,8 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
           <ul className="text-white/90 text-xs sm:text-sm font-press-start space-y-1 sm:space-y-2">
             <li>• Each symbol has weighted probability</li>
             <li>• Total symbol weight: 100</li>
+            <li>• Wins require 3 or more matching symbols</li>
+            <li>• More matches = higher multipliers</li>
             <li>• Game resets at 0 balance</li>
           </ul>
         </div>

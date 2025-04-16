@@ -1,15 +1,20 @@
 export type Symbol =
   | '⛽️'
-  | '��️'
+  | '🏎️'
   | '🔔'
   | '🪓'
   | '💣'
-  | '🔥';
+  | '🔥'
+  | '7️⃣';
 
 export interface SymbolConfig {
   symbol: Symbol;
   weight: number;
-  multiplier: number;
+  multiplier: {
+    three: number;
+    four: number;
+    five: number;
+  };
   jackpotMultiplier: number;
 }
 

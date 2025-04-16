@@ -1,12 +1,48 @@
 import { Symbol, SymbolConfig } from '../types/game';
 
 export const SYMBOLS: SymbolConfig[] = [
-  { symbol: '⛽️', weight: 5, multiplier: 50, jackpotMultiplier: 1000 },
-  { symbol: '🏎️', weight: 8, multiplier: 25, jackpotMultiplier: 500 },
-  { symbol: '🔔', weight: 12, multiplier: 15, jackpotMultiplier: 250 },
-  { symbol: '🪓', weight: 15, multiplier: 10, jackpotMultiplier: 150 },
-  { symbol: '💣', weight: 30, multiplier: 5, jackpotMultiplier: 100 },
-  { symbol: '🔥', weight: 30, multiplier: 5, jackpotMultiplier: 100 },
+  { 
+    symbol: '⛽️', 
+    weight: 1.5, 
+    multiplier: { three: 50, four: 250, five: 3000 },
+    jackpotMultiplier: 3000 
+  },
+  { 
+    symbol: '🏎️', 
+    weight: 3.0, 
+    multiplier: { three: 20, four: 100, five: 500 },
+    jackpotMultiplier: 500 
+  },
+  { 
+    symbol: '🔔', 
+    weight: 5.0, 
+    multiplier: { three: 10, four: 40, five: 200 },
+    jackpotMultiplier: 200 
+  },
+  { 
+    symbol: '💣', 
+    weight: 7.0, 
+    multiplier: { three: 7, four: 25, five: 100 },
+    jackpotMultiplier: 100 
+  },
+  { 
+    symbol: '🔥', 
+    weight: 9.0, 
+    multiplier: { three: 5, four: 15, five: 50 },
+    jackpotMultiplier: 50 
+  },
+  { 
+    symbol: '🪓', 
+    weight: 11.0, 
+    multiplier: { three: 3, four: 10, five: 25 },
+    jackpotMultiplier: 25 
+  },
+  { 
+    symbol: '7️⃣', 
+    weight: 13.5, 
+    multiplier: { three: 2, four: 5, five: 10 },
+    jackpotMultiplier: 10 
+  }
 ];
 
 export const getRandomSymbol = (): Symbol => {

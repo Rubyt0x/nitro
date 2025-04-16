@@ -36,16 +36,30 @@ export const evaluateWin = (
     const line = WIN_LINES[lineIndex];
     const symbols = line.map(([row, col]) => matrix[col][row]);
     
-    if (symbols.every(s => s === symbols[0])) {
+    // Count consecutive matching symbols from the start
+    let matchCount = 1;
+    for (let i = 1; i < symbols.length; i++) {
+      if (symbols[i] === symbols[0]) {
+        matchCount++;
+      } else {
+        break;
+      }
+    }
+    
+    if (matchCount >= 3) {
       const symbolConfig = getSymbolConfig(symbols[0]);
       if (symbolConfig) {
+        const multiplier = matchCount === 3 ? symbolConfig.multiplier.three :
+                         matchCount === 4 ? symbolConfig.multiplier.four :
+                         symbolConfig.multiplier.five;
+        
         winningLines.push({
           lineIndex,
           symbol: symbols[0],
-          multiplier: symbolConfig.multiplier
+          multiplier
         });
         
-        const lineWin = symbolConfig.multiplier * creditMultiplier;
+        const lineWin = multiplier * creditMultiplier;
         totalWinnings += lineWin;
         winningSymbols.add(symbols[0]);
       }
@@ -58,15 +72,19 @@ export const evaluateWin = (
     const jackpotLines = winningLines.filter(line => line.symbol === '⛽️');
     if (jackpotLines.length > 0) { 
       // Apply jackpot multiplier for each winning '⛽️' line only if max FUEL were bet
-      const jackpotWin = jackpotLines.length * jackpotSymbolConfig.jackpotMultiplier * creditMultiplier;
-      totalWinnings += jackpotWin; // Add jackpot winnings on top of regular winnings
+      const jackpotWin = jackpotLines.reduce((total, line) => {
+        return total + (line.multiplier * creditMultiplier);
+      }, 0);
+      
+      totalWinnings += jackpotWin;
 
       // Check if *all* selected lines were jackpot lines for the 'jackpot: true' flag
-      const allLinesAreJackpot = winningLines.length === selectedLines.length && winningLines.every(line => line.symbol === '⛽️');
+      const allLinesAreJackpot = winningLines.length === selectedLines.length && 
+                               winningLines.every(line => line.symbol === '⛽️');
 
       return {
         winnings: totalWinnings,
-        jackpot: allLinesAreJackpot, // Set true only if all selected lines hit the jackpot symbol
+        jackpot: allLinesAreJackpot,
         symbol: '⛽️',
         lines: winningLines
       };
