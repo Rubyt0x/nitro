@@ -83,14 +83,21 @@ const LinePreview = ({ lines, isVisible }: LinePreviewProps) => {
     y: pos.row * CELL_SIZE + HALF_CELL,
   });
 
+  const getLineColor = (line: number): string => {
+    // Horizontal lines (1, 2, 3) - red (keep existing)
+    if (line <= 3) return "rgba(239, 68, 68, 0.7)";
+    // Diagonal lines (4, 5) - yellow
+    if (line <= 5) return "rgba(234, 179, 8, 0.7)";
+    // Vertical lines (6, 7, 8) - white
+    return "rgba(255, 255, 255, 0.7)";
+  };
+
   return (
-    // Positioned absolutely within the reels container (w-fit)
-    // Use top-1 left-1 to account for parent's p-[4px] padding
     <div className="absolute top-1 left-1 w-[216px] h-[216px] pointer-events-none z-10">
       <AnimatePresence>
         {isVisible && (
           <motion.svg
-            key={`preview-lines-${lines.join('-')}`} // Unique key for the set of lines
+            key={`preview-lines-${lines.join('-')}`}
             className="absolute inset-0 overflow-visible"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -106,12 +113,13 @@ const LinePreview = ({ lines, isVisible }: LinePreviewProps) => {
                 return index === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
               }, '');
 
+              const lineColor = getLineColor(line);
+
               return (
-                // Use a group <g> for each line within the single SVG
                 <motion.g key={`line-${line}`}>
                   <motion.path
                     d={pathData}
-                    stroke="rgba(239, 68, 68, 0.7)"
+                    stroke={lineColor}
                     strokeWidth="4"
                     fill="none"
                     strokeLinecap="round"
@@ -129,7 +137,7 @@ const LinePreview = ({ lines, isVisible }: LinePreviewProps) => {
                         cx={x}
                         cy={y}
                         r="6"
-                        fill="rgba(239, 68, 68, 0.7)"
+                        fill={lineColor}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
@@ -193,11 +201,15 @@ export const SlotMachine = () => {
   const handleMuteToggle = () => {
     const newMuteState = toggleMute();
     setIsMuted(newMuteState);
+    if (!newMuteState) {
+      playSound('click');
+    }
   };
 
   const handleBetChange = (newTotalBet: number, newSelectedLines: number[]) => {
     setTotalBet(newTotalBet);
     setSelectedLines(newSelectedLines);
+    playSound('click');
   };
 
   const handleSpin = async () => {
@@ -222,7 +234,7 @@ export const SlotMachine = () => {
       setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
       
       const newResult = generateResultMatrix();
-      setResult(newResult); // Trigger reel animations
+      setResult(newResult);
       
       // Use a separate function for timeout logic for clarity
       const handleSpinEnd = () => {
@@ -256,11 +268,10 @@ export const SlotMachine = () => {
             
             const coords: [number, number][] = [];
             winResult.lines.forEach(line => {
-              // Use the 0-based line.lineIndex directly with WIN_LINES (now defined in winEvaluator.ts)
               const lineCoords = WIN_LINES[line.lineIndex]; 
               if (lineCoords) {
-                lineCoords.forEach(([row, col]) => { // WIN_LINES uses [row, col]
-                  const gridCoord: [number, number] = [col, row]; // Grid needs [col, row]
+                lineCoords.forEach(([row, col]) => {
+                  const gridCoord: [number, number] = [col, row];
                   if (!coords.some(c => c[0] === gridCoord[0] && c[1] === gridCoord[1])) {
                     coords.push(gridCoord);
                   }
@@ -269,9 +280,9 @@ export const SlotMachine = () => {
             });
             setWinningCoordinates(coords);
 
-            // Play win sound
-            const winningCombinations = winResult.lines.map(line => ({ symbol: line.symbol, count: 3 }));
-            playWinSound(winningCombinations);
+            // Play win sound with updated parameters
+            const winningSymbols = winResult.lines.map(line => line.symbol);
+            playWinSound(winningSymbols, winResult.jackpot);
 
             // Reset winning state after animation
             setTimeout(() => {
@@ -305,8 +316,8 @@ export const SlotMachine = () => {
     } catch (error) {
       console.error('Error starting spin:', error);
       stopSound('spin');
-      playSound('gameOver');
-      setIsSpinning(false); // Also ensure spinning is false if initial try fails
+      playSound('click'); // Use click sound instead of gameOver
+      setIsSpinning(false);
     }
   };
 
@@ -341,8 +352,10 @@ export const SlotMachine = () => {
 
   const handleLinePreview = (lines: number[]) => {
     setPreviewLines(lines);
-    // Set visibility based on whether the lines array is empty or not
     setIsPreviewVisible(lines.length > 0);
+    if (lines.length > 0) {
+      playSound('click');
+    }
   };
 
   return (
