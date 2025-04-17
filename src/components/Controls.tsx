@@ -39,19 +39,19 @@ export const Controls = ({
           const mode = BET_MODES.find(m => m.name === value);
           if (mode) onBetModeChange(mode);
         }}>
-          <Select.Trigger className="inline-flex items-center justify-center px-4 py-2 bg-slate-100 rounded-lg text-slate-900 hover:bg-slate-200 transition-colors min-w-[120px]">
+          <Select.Trigger className="inline-flex items-center justify-center px-4 py-2 bg-red-900 rounded-lg text-white hover:bg-red-800 transition-colors min-w-[120px]">
             <Coins className="w-4 h-4 mr-2 text-slate-600" />
             <Select.Value />
           </Select.Trigger>
           
           <Select.Portal>
-            <Select.Content className="bg-white rounded-lg p-1 shadow-xl border border-slate-200">
+            <Select.Content className="bg-red-900 rounded-lg p-1 shadow-xl border border-red-800">
               <Select.Viewport>
                 {BET_MODES.map((mode) => (
                   <Select.Item
                     key={mode.name}
                     value={mode.name}
-                    className="px-4 py-2 text-slate-900 hover:bg-slate-100 rounded cursor-pointer outline-none"
+                    className="px-4 py-2 text-white hover:bg-red-800 rounded cursor-pointer outline-none"
                   >
                     <Select.ItemText>{mode.name} ({mode.betAmount})</Select.ItemText>
                   </Select.Item>
@@ -66,8 +66,8 @@ export const Controls = ({
           disabled={disabled || balance < betMode.betAmount}
           className={`px-8 py-3 rounded-lg text-white font-medium transition-all
             ${disabled || balance < betMode.betAmount
-              ? 'bg-slate-200 cursor-not-allowed'
-              : 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
+              ? 'bg-red-800 cursor-not-allowed'
+              : 'bg-red-900 hover:bg-red-800 active:scale-[0.98]'
             }`}
         >
           SPIN
