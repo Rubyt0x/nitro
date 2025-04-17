@@ -11,6 +11,7 @@ import { initSounds, playSound, stopSound, playWinSound, toggleMute, getMuteStat
 import { AnimatedBalance } from './AnimatedBalance';
 import { JackpotDisplay } from './JackpotDisplay';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AdaptiveRNG } from '../utils/adaptiveRNG/AdaptiveRNG';
 
 const SymbolConfetti = ({ symbol, index }: { symbol: string; index: number }) => {
   const randomX = Math.random() * 200 - 100; // Wider spread: -100vw to 100vw
@@ -184,6 +185,9 @@ export const SlotMachine = () => {
   const [previewLines, setPreviewLines] = useState<number[]>([]);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
+  // Initialize AdaptiveRNG
+  const adaptiveRNG = useRef(new AdaptiveRNG());
+
   useEffect(() => {
     if (jackpotPool > 1000) {
       setIsPulsing(true);
@@ -218,9 +222,9 @@ export const SlotMachine = () => {
     setIsPreviewVisible(false); // Hide preview immediately on spin start
 
     try {
-      setIsSpinning(true); // Set spinning ON
+      setIsSpinning(true);
       setIsWinning(false);
-      setConfettiSymbols([]); 
+      setConfettiSymbols([]);
       playSound('spin');
 
       setWinningSymbols([]);
@@ -233,7 +237,8 @@ export const SlotMachine = () => {
       const jackpotContribution = Number((totalBet * 0.1).toFixed(2));
       setJackpotPool(prev => Number((prev + jackpotContribution).toFixed(2)));
       
-      const newResult = generateResultMatrix();
+      // Use AdaptiveRNG to generate the result matrix
+      const { matrix: newResult, winAmount: rngWinAmount } = adaptiveRNG.current.spin(totalBet);
       setResult(newResult);
       
       // Use a separate function for timeout logic for clarity
@@ -244,7 +249,7 @@ export const SlotMachine = () => {
           
           if (winResult.winnings > 0) {
             setIsWinning(true);
-            setBalance(prev => prev + winResult.winnings); // Use functional update
+            setBalance(prev => prev + winResult.winnings);
             setLastWin(winResult.winnings);
             
             // Set win notification using 0-based index + 1 for display
@@ -294,20 +299,18 @@ export const SlotMachine = () => {
           }
           
           // Check for game over condition
-          // Show dialog only if balance drops below the minimum possible bet (1 line * 100x = 100)
           const MINIMUM_POSSIBLE_BET = 100;
           setBalance(currentBalance => {
-             if (currentBalance < MINIMUM_POSSIBLE_BET) {
-               setShowResetDialog(true);
-             }
-             return currentBalance;
+            if (currentBalance < MINIMUM_POSSIBLE_BET) {
+              setShowResetDialog(true);
+            }
+            return currentBalance;
           });
 
         } catch (error) {
           console.error('Error during spin evaluation:', error);
-          // Optionally handle error state here
         } finally {
-          setIsSpinning(false); // Ensure spinning is set to false
+          setIsSpinning(false);
         }
       };
 
@@ -316,7 +319,7 @@ export const SlotMachine = () => {
     } catch (error) {
       console.error('Error starting spin:', error);
       stopSound('spin');
-      playSound('click'); // Use click sound instead of gameOver
+      playSound('click');
       setIsSpinning(false);
     }
   };
