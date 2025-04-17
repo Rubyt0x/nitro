@@ -24,9 +24,28 @@ export const getRandomSymbol = (): Symbol => {
 };
 
 export const generateResultMatrix = (): Symbol[][] => {
-  return Array(3).fill(null).map(() =>
+  const matrix = Array(3).fill(null).map(() =>
     Array(3).fill(null).map(() => getRandomSymbol())
   );
+  
+  // Log final results only
+  console.log('\n=== Spin Results ===');
+  console.log('Final Matrix:');
+  matrix.forEach((col, i) => console.log(`Column ${i + 1}:`, col));
+  
+  // Calculate and log symbol distribution
+  const symbolCounts = matrix.flat().reduce((acc, symbol) => {
+    acc[symbol] = (acc[symbol] || 0) + 1;
+    return acc;
+  }, {} as Record<Symbol, number>);
+  
+  console.log('\nSymbol Distribution:');
+  Object.entries(symbolCounts).forEach(([symbol, count]) => {
+    console.log(`${symbol}: ${count} (${((count / 9) * 100).toFixed(1)}%)`);
+  });
+  console.log('===================\n');
+  
+  return matrix;
 };
 
 export const getSymbolConfig = (symbol: Symbol): SymbolConfig | undefined => {
