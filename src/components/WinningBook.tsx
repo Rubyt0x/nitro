@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { Symbol } from '../types/game';
 import { getSymbolConfig } from '../utils/symbols';
+import { SYMBOL_WEIGHTS, PAYOUT_MULTIPLIERS } from '../utils/adaptiveRNG/config';
 
 interface WinningBookProps {
   open: boolean;
@@ -31,28 +32,24 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
             const config = getSymbolConfig(symbol as Symbol);
             if (!config) return null;
             
-            const probability = ((config.weight / 100) * 100).toFixed(1);
+            const probability = (SYMBOL_WEIGHTS[symbol as Symbol] * 100).toFixed(1);
             
             return (
               <div key={symbol} className="bg-black/50 p-2 sm:p-3 border border-red-500/30">
-                <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                  <span className="text-xl sm:text-2xl">{symbol}</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl">{symbol}</span>
                   <div className="flex flex-col">
-                    <span className="text-white text-xs sm:text-sm font-press-start">x{config.multiplier}</span>
+                    <span className="text-white text-xs sm:text-sm font-press-start">
+                      {symbol === '⛽️' ? 'x1000' : `x${config.multiplier}`}
+                    </span>
                     <small className="text-red-400/80 text-[10px] sm:text-xs font-sans font-normal tracking-wide">
                       {probability}% chance
                     </small>
                   </div>
                 </div>
-                {symbol === '⛽️' ? (
-                  <div className="text-white/80 text-[10px] sm:text-xs font-press-start">
-                    Jackpot: x{config.jackpotMultiplier} (Max Bet)
-                  </div>
-                ) : (
-                  <div className="text-white/80 text-[10px] sm:text-xs font-press-start">
-                    Regular Win Only
-                  </div>
-                )}
+                <div className="text-white/80 text-[10px] sm:text-xs font-press-start mt-2">
+                  {symbol === '⛽️' ? 'Jackpot (Max Bet)' : 'Regular Win'}
+                </div>
               </div>
             );
           })}
@@ -133,21 +130,18 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-[95vw] sm:w-[90vw] max-w-lg flex flex-col z-50">
-          <Dialog.Title className="text-base sm:text-lg font-medium text-white mb-3 sm:mb-4 font-press-start flex-shrink-0">
+        <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-2xl bg-gradient-to-b from-red-950 to-black p-4 sm:p-6 rounded-lg border border-red-500/30 shadow-xl z-[101]">
+          <Dialog.Title className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 font-press-start">
             {type === 'combinations' ? 'Winning Combinations' : 'Game Rules'}
           </Dialog.Title>
-          
-          <div className="flex-grow overflow-y-auto pr-2 -mr-2">
-            {type === 'combinations' ? renderWinningCombinations() : renderGameRules()}
-          </div>
-
-          <div className="mt-3 sm:mt-4 flex justify-end flex-shrink-0">
-            <Dialog.Close className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-none hover:bg-red-700 transition-colors font-press-start text-xs sm:text-sm">
-              Close
-            </Dialog.Close>
-          </div>
+          {type === 'combinations' ? renderWinningCombinations() : renderGameRules()}
+          <Dialog.Close className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
+            <span className="sr-only">Close</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
