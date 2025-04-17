@@ -133,8 +133,8 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-[95vw] sm:w-[90vw] max-w-lg flex flex-col">
+        <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-sm p-3 sm:p-4 rounded-none shadow-[0_0_15px_rgba(255,0,0,0.3)] border-2 border-red-500/50 w-[95vw] sm:w-[90vw] max-w-lg flex flex-col z-50">
           <Dialog.Title className="text-base sm:text-lg font-medium text-white mb-3 sm:mb-4 font-press-start flex-shrink-0">
             {type === 'combinations' ? 'Winning Combinations' : 'Game Rules'}
           </Dialog.Title>

@@ -10,9 +10,10 @@ interface BettingPanelProps {
   onBetChange: (totalBet: number, selectedLines: number[]) => void;
   disabled: boolean;
   isWinning?: boolean;
+  onLinePreview?: (lines: number[]) => void;
 }
 
-export const BettingPanel = ({ balance, onBetChange, disabled, isWinning = false }: BettingPanelProps) => {
+export const BettingPanel = ({ balance, onBetChange, disabled, isWinning = false, onLinePreview }: BettingPanelProps) => {
   const [selectedLines, setSelectedLines] = useState<LineSelection>(LINE_SELECTIONS[0]);
   const [selectedMultiplier, setSelectedMultiplier] = useState<CreditMultiplier>(CREDIT_MULTIPLIERS[0]);
   const [totalBet, setTotalBet] = useState(0);
@@ -70,6 +71,14 @@ export const BettingPanel = ({ balance, onBetChange, disabled, isWinning = false
   }, [selectedLines, selectedMultiplier, balance, onBetChange]);
 
   const showSpinZeroTooltip = estimatedBets === 0 && totalBet > 0;
+
+  const handleLineHover = (lines: number[]) => {
+    onLinePreview?.(lines);
+  };
+
+  const handleLineLeave = () => {
+    onLinePreview?.([]);
+  };
 
   return (
     <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
@@ -142,6 +151,8 @@ export const BettingPanel = ({ balance, onBetChange, disabled, isWinning = false
                   <Tooltip.Trigger asChild>
                     <button
                       onClick={() => setSelectedLines(option)}
+                      onMouseEnter={() => handleLineHover(option.lines)}
+                      onMouseLeave={handleLineLeave}
                       disabled={disabled}
                       className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-none text-xs sm:text-sm font-medium transition-all
                         ${selectedLines.label === option.label
@@ -170,9 +181,13 @@ export const BettingPanel = ({ balance, onBetChange, disabled, isWinning = false
 
         {/* Credit Multiplier */}
         <div className="flex flex-col items-center space-y-2">
-          <div className="text-xs sm:text-sm font-medium text-red-400 font-press-start">
-            <span className="sm:hidden">FUEL / Line</span>
-            <span className="hidden sm:inline">FUEL Per Line</span>
+          <div className="flex items-center justify-center text-xs sm:text-sm font-medium text-red-400 font-press-start gap-x-1.5">
+            <img 
+              src="/images/fuel-logo.png" 
+              alt="" 
+              className="w-4 h-4"
+            />
+            <span>/ Line</span>
           </div>
           <div className="grid grid-cols-2 gap-2 w-full">
             {CREDIT_MULTIPLIERS.map((multiplier) => (

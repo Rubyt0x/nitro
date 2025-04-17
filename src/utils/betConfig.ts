@@ -3,22 +3,22 @@ import { LineSelection, CreditMultiplier } from '../types/game';
 export const LINE_SELECTIONS: LineSelection[] = [
   {
     label: "1 Line",
-    lines: [1], // Middle row only
+    lines: [1], // Middle row (Line 1)
     description: "Play just the middle row"
   },
   {
     label: "3 Lines",
-    lines: [0, 1, 2], // All rows
+    lines: [1, 2, 3], // All horizontal rows (Lines 1, 2, 3)
     description: "Play all horizontal lines"
   },
   {
     label: "5 Lines",
-    lines: [0, 1, 2, 3, 4], // Rows + diagonals
+    lines: [1, 2, 3, 4, 5], // Horizontals + diagonals (Lines 1-5)
     description: "Play rows and diagonals"
   },
   {
     label: "8 Lines",
-    lines: [0, 1, 2, 3, 4, 5, 6, 7], // All lines
+    lines: [1, 2, 3, 4, 5, 6, 7, 8], // All lines (Lines 1-8)
     description: "Play all possible lines"
   }
 ];

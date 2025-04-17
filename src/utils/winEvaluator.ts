@@ -24,7 +24,7 @@ const MAX_CREDIT_MULTIPLIER = 1000;
 
 export const evaluateWin = (
   matrix: ResultMatrix,
-  selectedLines: number[],
+  selectedLines: number[], // Expects 1-based indices [1, 2, 3, ...]
   creditMultiplier: number
 ): WinResult => {
   const winningLines: LineWin[] = [];
@@ -32,15 +32,19 @@ export const evaluateWin = (
   const winningSymbols = new Set<Symbol>();
   
   // Check only the selected lines
-  for (const lineIndex of selectedLines) {
-    const line = WIN_LINES[lineIndex];
+  for (const lineIndex of selectedLines) { // lineIndex is 1, 2, 3, ...
+    // Access WIN_LINES using 0-based index
+    const line = WIN_LINES[lineIndex - 1]; 
+    if (!line) continue; // Skip if line definition doesn't exist
+
     const symbols = line.map(([row, col]) => matrix[col][row]);
     
-    if (symbols.every(s => s === symbols[0])) {
+    // Check if all symbols on the line are the same
+    if (symbols.length > 0 && symbols.every(s => s === symbols[0])) {
       const symbolConfig = getSymbolConfig(symbols[0]);
       if (symbolConfig) {
         winningLines.push({
-          lineIndex,
+          lineIndex: lineIndex - 1, // Store 0-based index internally in the result
           symbol: symbols[0],
           multiplier: symbolConfig.multiplier
         });
