@@ -2,6 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Symbol } from '../types/game';
 import { getSymbolConfig } from '../utils/symbols';
 import { SYMBOL_WEIGHTS, PAYOUT_MULTIPLIERS } from '../utils/adaptiveRNG/config';
+import { WrappedFuelSymbol } from './DemoJackpotManager';
 
 interface WinningBookProps {
   open: boolean;
@@ -10,7 +11,14 @@ interface WinningBookProps {
 }
 
 export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
-  const symbols = ['⛽️', '🏎️', '🔔', '🪓', '💣', '🔥'];
+  const symbols = [
+    '/images/fuel-logo.png',  // Rarest - 1% - Jackpot
+    '🏎️',                    // Very rare - 2%
+    '⛽️',                    // Rare - 5%
+    '🪓',                    // High value - 20%
+    '🔥',                    // Medium value - 30%
+    '💣'                     // Most common - 42%
+  ];
   const lines = [
     { name: 'Top Row', index: 0 },
     { name: 'Middle Row', index: 1 },
@@ -32,15 +40,19 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
             const config = getSymbolConfig(symbol as Symbol);
             if (!config) return null;
             
-            const probability = (SYMBOL_WEIGHTS[symbol as Symbol] * 100).toFixed(1);
+            const probability = (config.weight / 100 * 100).toFixed(1);
+            const isJackpotSymbol = symbol === '/images/fuel-logo.png';
             
             return (
               <div key={symbol} className="bg-black/50 p-2 sm:p-3 border border-red-500/30">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="text-2xl sm:text-3xl">{symbol}</span>
+                  <WrappedFuelSymbol 
+                    symbol={symbol}
+                    className="text-2xl sm:text-3xl"
+                  />
                   <div className="flex flex-col">
                     <span className="text-white text-xs sm:text-sm font-press-start">
-                      {symbol === '⛽️' ? 'x1000' : `x${config.multiplier}`}
+                      {isJackpotSymbol ? 'x1000' : `x${config.multiplier}`}
                     </span>
                     <small className="text-red-400/80 text-[10px] sm:text-xs font-sans font-normal tracking-wide">
                       {probability}% chance
@@ -48,11 +60,26 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
                   </div>
                 </div>
                 <div className="text-white/80 text-[10px] sm:text-xs font-press-start mt-2">
-                  {symbol === '⛽️' ? 'Jackpot (Max Bet)' : 'Regular Win'}
+                  {isJackpotSymbol ? 'Jackpot (Max Bet)' : 'Regular Win'}
                 </div>
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Symbol Rarity */}
+      <div>
+        <h3 className="text-sm sm:text-base font-medium text-red-400 mb-2 sm:mb-3 font-press-start">Symbol Rarity</h3>
+        <div className="bg-black/50 p-2 sm:p-3 border border-red-500/30">
+          <ul className="text-white/90 text-xs sm:text-sm font-press-start space-y-1 sm:space-y-2">
+            <li>• Fuel Token (logo) - Rarest (1% chance)</li>
+            <li>• Race Car (🏎️) - Very Rare (2% chance)</li>
+            <li>• Fuel Pump (⛽️) - Rare (5% chance)</li>
+            <li>• Axe (🪓) - High Value (20% chance)</li>
+            <li>• Fire (🔥) - Medium Value (30% chance)</li>
+            <li>• Bomb (💣) - Most Common (42% chance)</li>
+          </ul>
         </div>
       </div>
 
@@ -103,24 +130,12 @@ export const WinningBook = ({ open, onOpenChange, type }: WinningBookProps) => {
         <h3 className="text-sm sm:text-base font-medium text-red-400 mb-2 sm:mb-3 font-press-start">Jackpot Rules</h3>
         <div className="bg-black/50 p-2 sm:p-3 border border-red-500/30">
           <ul className="text-white/90 text-xs sm:text-sm font-press-start space-y-1 sm:space-y-2">
-            <li>• Only the fuel pump (⛽️) symbol can trigger the jackpot</li>
+            <li>• Only the Fuel Token (logo) can trigger the jackpot</li>
             <li>• Must bet max FUEL (10 per line)</li>
-            <li>• All selected lines must show fuel pump (⛽️) symbols</li>
+            <li>• All selected lines must show Fuel Token (logo)</li>
             <li>• 10% of each bet added to jackpot pool</li>
             <li>• Mega Jackpot triggered at 1000+ FUEL</li>
             <li>• Multiple winning lines get 10% bonus per line</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Game Mechanics */}
-      <div>
-        <h3 className="text-sm sm:text-base font-medium text-red-400 mb-2 sm:mb-3 font-press-start">Game Mechanics</h3>
-        <div className="bg-black/50 p-2 sm:p-3 border border-red-500/30">
-          <ul className="text-white/90 text-xs sm:text-sm font-press-start space-y-1 sm:space-y-2">
-            <li>• Each symbol has weighted probability</li>
-            <li>• Total symbol weight: 100</li>
-            <li>• Game resets at 0 balance</li>
           </ul>
         </div>
       </div>

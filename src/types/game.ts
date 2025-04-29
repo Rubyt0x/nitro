@@ -1,10 +1,10 @@
 export type Symbol =
-  | '⛽️'
-  | '🏎️'
-  | '🔔'
-  | '🪓'
-  | '💣'
-  | '🔥';
+  | '/images/fuel-logo.png'  // Rarest
+  | '🏎️'                    // Very rare
+  | '⛽️'                    // Rare
+  | '🪓'                    // High value
+  | '🔥'                    // Medium value
+  | '💣';                   // Most common
 
 export interface SymbolConfig {
   symbol: Symbol;

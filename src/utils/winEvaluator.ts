@@ -57,7 +57,7 @@ export const evaluateWin = (
   }
   
   // Check for jackpot (requires specific symbol, all selected lines winning, AND max FUEL)
-  const jackpotSymbolConfig = getSymbolConfig('⛽️');
+  const jackpotSymbolConfig = getSymbolConfig('/images/fuel-logo.png');
   if (jackpotSymbolConfig && creditMultiplier === MAX_CREDIT_MULTIPLIER) {
     const jackpotLines = winningLines.filter(line => line.symbol === '⛽️');
     if (jackpotLines.length > 0) { 

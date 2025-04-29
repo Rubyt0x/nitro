@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Symbol } from '../../types/game';
 import { useState } from 'react';
+import { WrappedFuelSymbol } from '../DemoJackpotManager';
 
 interface IntroScreenProps {
   onComplete: () => void;
 }
 
-const symbols: Symbol[] = ['⛽️', '🏎️', '🔔', '🪓', '💣', '🔥'];
+const symbols: Symbol[] = ['⛽️', '🏎️', '⛽️', '🪓', '💣', '🔥'];
 
 const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
   const [isExiting, setIsExiting] = useState(false);
@@ -64,7 +65,10 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                   delay: i * 0.1,
                 }}
               >
-                {symbols[Math.floor(Math.random() * symbols.length)]}
+                <WrappedFuelSymbol 
+                  symbol={symbols[Math.floor(Math.random() * symbols.length)]}
+                  className="text-2xl"
+                />
               </motion.div>
             ))}
           </div>
@@ -86,7 +90,7 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
           >
             {/* Title */}
             <motion.h1
-              className="text-6xl font-bold text-white mb-12 font-['Press_Start_2P'] text-center"
+              className="text-4xl sm:text-5xl md:text-6xl font-press-start text-white text-center mb-4 sm:mb-6 md:mb-8"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ 
@@ -100,7 +104,7 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                 ease: [0.22, 1, 0.36, 1]
               }}
             >
-              FUEL NITRO RUSH
+              NITRO RUSH
             </motion.h1>
 
             {/* Start Button */}

@@ -14,12 +14,12 @@ export const RNG_CONFIG = {
 
 // Base weights for each symbol (sums to 1.0)
 export const SYMBOL_WEIGHTS: Record<Symbol, number> = {
-  '⛽️': 0.02, // Wild - Very rare base weight
-  '🏎️': 0.08, // Scatter
-  '🔔': 0.12, // High value
-  '🪓': 0.20, // Medium value
-  '💣': 0.30, // Low value
-  '🔥': 0.28, // Lowest value
+  '/images/fuel-logo.png': 0.01,  // Rarest
+  '🏎️': 0.02,                    // Very rare
+  '⛽️': 0.05,                    // Rare
+  '🪓': 0.20,                    // High value
+  '🔥': 0.30,                    // Medium value
+  '💣': 0.42,                    // Most common
 };
 
 // Jackpot-specific configuration
@@ -35,22 +35,22 @@ export const JACKPOT_CONFIG = {
 
 // Near-miss probabilities for each symbol
 export const NEAR_MISS_PROBABILITIES: Record<Symbol, number[]> = {
-  '⛽️': [0.05, 0.1, 0.15], // Wild near-miss probabilities (lower base)
-  '🏎️': [0.15, 0.25, 0.35], // Scatter near-miss probabilities
-  '🔔': [0.2, 0.3, 0.4], // High value near-miss probabilities
-  '🪓': [0.25, 0.35, 0.45], // Medium value near-miss probabilities
-  '💣': [0.3, 0.4, 0.5], // Low value near-miss probabilities
-  '🔥': [0.35, 0.45, 0.55], // Lowest value near-miss probabilities
+  '/images/fuel-logo.png': [0.02, 0.05, 0.08],  // Rarest
+  '🏎️': [0.05, 0.1, 0.15],                     // Very rare
+  '⛽️': [0.1, 0.15, 0.2],                      // Rare
+  '🪓': [0.2, 0.3, 0.4],                       // High value
+  '🔥': [0.25, 0.35, 0.45],                    // Medium value
+  '💣': [0.3, 0.4, 0.5],                       // Most common
 };
 
 // Payout multipliers for winning combinations
 export const PAYOUT_MULTIPLIERS: Record<Symbol, number[]> = {
-  '⛽️': [0, 0, 0, 0, 0, 0], // Wild pays on all lines
-  '🏎️': [0, 0, 0, 0, 0, 0], // Scatter pays on all positions
-  '🔔': [0, 0, 0, 0, 0, 0], // High value
-  '🪓': [0, 0, 0, 0, 0, 0], // Medium value
-  '💣': [0, 0, 0, 0, 0, 0], // Low value
-  '🔥': [0, 0, 0, 0, 0, 0], // Lowest value
+  '/images/fuel-logo.png': [0, 0, 0, 0, 0, 0],  // Rarest
+  '🏎️': [0, 0, 0, 0, 0, 0],                    // Very rare
+  '⛽️': [0, 0, 0, 0, 0, 0],                    // Rare
+  '🪓': [0, 0, 0, 0, 0, 0],                    // High value
+  '🔥': [0, 0, 0, 0, 0, 0],                    // Medium value
+  '💣': [0, 0, 0, 0, 0, 0],                    // Most common
 };
 
 // Volatility settings

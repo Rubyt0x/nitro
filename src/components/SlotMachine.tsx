@@ -161,7 +161,7 @@ export const SlotMachine = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<ResultMatrix>([
     ['🔥', '💣', '🪓'],
-    ['💣', '🔔', '🔥'],
+    ['💣', '/images/fuel-logo.png', '🔥'],
     ['🪓', '🔥', '💣']
   ]);
   const [lastWin, setLastWin] = useState(0);
@@ -467,7 +467,7 @@ export const SlotMachine = () => {
 
         {/* Jackpot Display with Integrated Title */}
         <JackpotDisplay 
-          title="FUEL NITRO RUSH"
+          title="NITRO RUSH"
           jackpotPool={jackpotPool} 
           winNotification={winNotification}
         />

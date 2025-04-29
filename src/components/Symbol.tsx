@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Symbol as SymbolType } from '../types/game';
+import { WrappedFuelSymbol } from './DemoJackpotManager';
 
 interface SymbolProps {
   symbol: SymbolType;
@@ -23,7 +24,10 @@ export const Symbol = ({ symbol, isWinning }: SymbolProps) => {
         }
       } : {}}
     >
-      {symbol}
+      <WrappedFuelSymbol 
+        symbol={symbol}
+        className="text-4xl"
+      />
       {isWinning && (
         <>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/20 to-transparent opacity-100 transition-opacity duration-300" />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SlotMachine } from './components/SlotMachine';
 import IntroScreen from './components/intro/IntroScreen';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DemoJackpotManager } from './components/DemoJackpotManager';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -23,7 +24,9 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
           >
-            <SlotMachine />
+            <DemoJackpotManager>
+              <SlotMachine />
+            </DemoJackpotManager>
           </motion.div>
         ) : null}
       </AnimatePresence>
